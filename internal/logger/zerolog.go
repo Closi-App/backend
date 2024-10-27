@@ -55,6 +55,10 @@ func (l *zerologLogger) Debug(msg string) {
 	l.log.Debug().Msg(msg)
 }
 
+func (l *zerologLogger) Fatal(msg string) {
+	l.log.Fatal().Msg(msg)
+}
+
 func (l *zerologLogger) WithField(key string, value interface{}) Logger {
 	return &zerologLogger{
 		log: l.log.With().Interface(key, value).Logger(),
