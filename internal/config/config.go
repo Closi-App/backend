@@ -8,8 +8,9 @@ import (
 
 type (
 	Config struct {
-		App AppConfig `yaml:"app" env-required:"true"`
-		Log LogConfig `yaml:"log" env-required:"true"`
+		App   AppConfig   `yaml:"app" env-required:"true"`
+		Log   LogConfig   `yaml:"log" env-required:"true"`
+		Mongo MongoConfig `yaml:"mongo" env-required:"true"`
 	}
 
 	AppConfig struct {
@@ -19,6 +20,11 @@ type (
 	LogConfig struct {
 		Level    string `yaml:"level" env-required:"true"`
 		Encoding string `yaml:"encoding" env-required:"true"`
+	}
+
+	MongoConfig struct {
+		URI    string `yaml:"uri" env:"MONGO_URI" env-required:"true"`
+		DBName string `yaml:"db_name" env:"MONGO_DB_NAME" env-required:"true"`
 	}
 )
 

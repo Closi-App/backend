@@ -11,11 +11,9 @@ func main() {
 	flag.Parse()
 	cfg := config.Load(*configFilePath)
 
-	log, cleanup, err := wire.NewWire(cfg)
+	_, cleanup, err := wire.NewWire(cfg)
 	defer cleanup()
 	if err != nil {
 		panic(err)
 	}
-
-	log.Info("OK")
 }
