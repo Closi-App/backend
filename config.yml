@@ -1,0 +1,6 @@
+app:
+  name: "Closi"
+
+log:
+  level: "debug"
+  encoding: "console"
