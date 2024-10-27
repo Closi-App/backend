@@ -6,8 +6,6 @@ import (
 	"sync"
 )
 
-const configFilePath = "./config.yml"
-
 type (
 	Config struct {
 		App AppConfig `yaml:"app" env-required:"true"`
@@ -29,7 +27,7 @@ var (
 	config Config
 )
 
-func Load() *Config {
+func Load(configFilePath string) *Config {
 	once.Do(func() {
 		if err := cleanenv.ReadConfig(configFilePath, &config); err != nil {
 			panic("error reading config file: " + err.Error())
