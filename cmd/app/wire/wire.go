@@ -12,7 +12,8 @@ import (
 
 var repositorySet = wire.NewSet(
 	repository.NewDB,
-	repository.New,
+	repository.NewRepository,
+	repository.NewUserRepository,
 )
 
 func NewWire(*config.Config) (*repository.Repository, func(), error) {

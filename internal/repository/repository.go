@@ -12,7 +12,7 @@ type Repository struct {
 	db  *mongo.Database
 }
 
-func New(log logger.Logger, db *mongo.Database) *Repository {
+func NewRepository(log logger.Logger, db *mongo.Database) *Repository {
 	return &Repository{
 		log: log,
 		db:  db,
