@@ -4,3 +4,8 @@ app:
 log:
   level: "debug"
   encoding: "console"
+
+http:
+  read_timeout: 10s
+  write_timeout: 30s
+  idle_timeout: 60s

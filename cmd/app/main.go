@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/Closi-App/backend/cmd/app/wire"
 	"github.com/Closi-App/backend/internal/config"
@@ -11,9 +12,11 @@ func main() {
 	flag.Parse()
 	cfg := config.Load(*configFilePath)
 
-	_, cleanup, err := wire.NewWire(cfg)
+	app, cleanup, err := wire.NewWire(cfg)
 	defer cleanup()
 	if err != nil {
 		panic(err)
 	}
+
+	app.Run(context.Background())
 }

@@ -8,22 +8,28 @@ package wire
 
 import (
 	"github.com/Closi-App/backend/internal/config"
+	"github.com/Closi-App/backend/internal/delivery/http"
+	"github.com/Closi-App/backend/internal/delivery/http/v1"
 	"github.com/Closi-App/backend/internal/logger"
 	"github.com/Closi-App/backend/internal/repository"
 	"github.com/Closi-App/backend/internal/service"
+	"github.com/Closi-App/backend/pkg/app"
 	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func NewWire(configConfig *config.Config) (service.UserService, func(), error) {
+func NewWire(configConfig *config.Config) (*app.App, func(), error) {
 	loggerLogger := logger.NewZerolog(configConfig)
 	serviceService := service.NewService(loggerLogger)
 	database := repository.NewDB(configConfig, loggerLogger)
 	repositoryRepository := repository.NewRepository(loggerLogger, database)
 	userRepository := repository.NewUserRepository(repositoryRepository)
 	userService := service.NewUserService(serviceService, userRepository)
-	return userService, func() {
+	handler := v1.NewHandler(loggerLogger, userService)
+	server := http.NewServer(configConfig, loggerLogger, handler)
+	appApp := newApp(server)
+	return appApp, func() {
 	}, nil
 }
 
@@ -32,3 +38,9 @@ func NewWire(configConfig *config.Config) (service.UserService, func(), error) {
 var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewUserRepository)
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService)
+
+var deliverySet = wire.NewSet(v1.NewHandler, http.NewServer)
+
+func newApp(httpServer *http.Server) *app.App {
+	return app.NewApp(httpServer)
+}
