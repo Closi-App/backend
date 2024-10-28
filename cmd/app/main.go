@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/Closi-App/backend/cmd/server/wire"
+	"github.com/Closi-App/backend/cmd/app/wire"
 	"github.com/Closi-App/backend/internal/config"
 )
 

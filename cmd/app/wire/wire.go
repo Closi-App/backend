@@ -22,7 +22,7 @@ var serviceSet = wire.NewSet(
 	service.NewUserService,
 )
 
-func NewWire(*config.Config) (*repository.Repository, func(), error) {
+func NewWire(*config.Config) (service.UserService, func(), error) {
 	panic(wire.Build(
 		logger.NewZerolog,
 		repositorySet,
