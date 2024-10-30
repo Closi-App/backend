@@ -22,4 +22,6 @@ func (h *Handler) InitRoutes(router fiber.Router) {
 	router.Get("/ping", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("pong")
 	})
+
+	h.initUserRoutes(router)
 }
