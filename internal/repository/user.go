@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"github.com/Closi-App/backend/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const userCollectionName = "users"
@@ -11,7 +13,7 @@ const userCollectionName = "users"
 type UserRepository interface {
 	Create(ctx context.Context, user domain.User) error
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
-	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error)
+	GetByCredentials(ctx context.Context, usernameOrEmail string, password string) (domain.User, error)
 	Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 }
@@ -27,18 +29,56 @@ func NewUserRepository(repository *Repository) UserRepository {
 }
 
 func (r *userRepository) Create(ctx context.Context, user domain.User) error {
-	//TODO implement me
-	panic("implement me")
+	_, err := r.db.Collection(userCollectionName).
+		InsertOne(ctx, user)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return domain.ErrUserAlreadyExists
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (r *userRepository) GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error) {
-	//TODO implement me
-	panic("implement me")
+	var user domain.User
+
+	err := r.db.Collection(userCollectionName).
+		FindOne(ctx, bson.M{"_id": id}).
+		Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+		return domain.User{}, err
+	}
+
+	return user, nil
 }
 
-func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *userRepository) GetByCredentials(ctx context.Context, usernameOrEmail string, password string) (domain.User, error) {
+	var user domain.User
+
+	err := r.db.Collection(userCollectionName).
+		FindOne(ctx, bson.M{
+			"$and": bson.M{
+				"$or": bson.M{
+					"username": usernameOrEmail,
+					"email":    usernameOrEmail,
+				},
+				"password": password,
+			},
+		}).
+		Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+		return domain.User{}, err
+	}
+
+	return user, nil
 }
 
 type UserUpdateInput struct {
@@ -47,15 +87,40 @@ type UserUpdateInput struct {
 	Email                   string
 	Password                string
 	AvatarURL               string
-	NotificationPreferences domain.NotificationPreferences
+	NotificationPreferences *domain.NotificationPreferences
 }
 
 func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error {
-	//TODO implement me
-	panic("implement me")
+	updateQuery := bson.M{}
+
+	if input.Name != "" {
+		updateQuery["name"] = input.Name
+	}
+	if input.Username != "" {
+		updateQuery["username"] = input.Username
+	}
+	if input.Email != "" {
+		updateQuery["email"] = input.Email
+	}
+	if input.Password != "" {
+		updateQuery["password"] = input.Password
+	}
+	if input.AvatarURL != "" {
+		updateQuery["avatar_url"] = input.AvatarURL
+	}
+	if input.NotificationPreferences != nil {
+		updateQuery["notification_preferences"] = input.NotificationPreferences
+	}
+
+	_, err := r.db.Collection(userCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updateQuery})
+
+	return err
 }
 
 func (r *userRepository) Delete(ctx context.Context, id bson.ObjectID) error {
-	//TODO implement me
-	panic("implement me")
+	_, err := r.db.Collection(userCollectionName).
+		DeleteOne(ctx, bson.M{"_id": id})
+
+	return err
 }
