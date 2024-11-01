@@ -1,17 +1,17 @@
 package v1
 
 import (
-	"github.com/Closi-App/backend/internal/logger"
 	"github.com/Closi-App/backend/internal/service"
+	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Handler struct {
-	log         logger.Logger
+	log         *logger.Logger
 	userService service.UserService
 }
 
-func NewHandler(log logger.Logger, userService service.UserService) *Handler {
+func NewHandler(log *logger.Logger, userService service.UserService) *Handler {
 	return &Handler{
 		log:         log,
 		userService: userService,

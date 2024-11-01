@@ -7,40 +7,40 @@
 package wire
 
 import (
-	"github.com/Closi-App/backend/internal/config"
 	"github.com/Closi-App/backend/internal/delivery/http"
 	"github.com/Closi-App/backend/internal/delivery/http/v1"
-	"github.com/Closi-App/backend/internal/logger"
 	"github.com/Closi-App/backend/internal/repository"
 	"github.com/Closi-App/backend/internal/service"
 	"github.com/Closi-App/backend/pkg/app"
+	"github.com/Closi-App/backend/pkg/database/mongo"
+	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
+	"github.com/spf13/viper"
 )
 
 // Injectors from wire.go:
 
-func NewWire(configConfig *config.Config) (*app.App, func(), error) {
-	loggerLogger := logger.NewZerolog(configConfig)
+func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, func(), error) {
 	serviceService := service.NewService(loggerLogger)
-	database := repository.NewDB(configConfig, loggerLogger)
+	database := mongo.NewMongo(viperViper)
 	repositoryRepository := repository.NewRepository(loggerLogger, database)
 	userRepository := repository.NewUserRepository(repositoryRepository)
 	userService := service.NewUserService(serviceService, userRepository)
 	handler := v1.NewHandler(loggerLogger, userService)
-	server := http.NewServer(configConfig, loggerLogger, handler)
-	appApp := newApp(server)
+	server := http.NewServer(viperViper, loggerLogger, handler)
+	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {
 	}, nil
 }
 
 // wire.go:
 
-var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewUserRepository)
+var repositorySet = wire.NewSet(mongo.NewMongo, repository.NewRepository, repository.NewUserRepository)
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService)
 
 var deliverySet = wire.NewSet(v1.NewHandler, http.NewServer)
 
-func newApp(httpServer *http.Server) *app.App {
-	return app.NewApp(httpServer)
+func newApp(cfg *viper.Viper, log *logger.Logger, httpServer *http.Server) *app.App {
+	return app.NewApp(cfg, log, httpServer)
 }

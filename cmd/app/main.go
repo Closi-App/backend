@@ -4,15 +4,18 @@ import (
 	"context"
 	"flag"
 	"github.com/Closi-App/backend/cmd/app/wire"
-	"github.com/Closi-App/backend/internal/config"
+	"github.com/Closi-App/backend/pkg/config"
+	"github.com/Closi-App/backend/pkg/logger"
 )
 
 func main() {
-	configFilePath := flag.String("config", "./config.yml", "config file path, eg: -config ./configs/local.yml")
+	cfgFilePath := flag.String("config", "./config.yml", "config file path, eg: -config ./configs/local.yml")
 	flag.Parse()
-	cfg := config.Load(*configFilePath)
+	cfg := config.NewConfig(*cfgFilePath)
 
-	app, cleanup, err := wire.NewWire(cfg)
+	log := logger.NewLogger(cfg)
+
+	app, cleanup, err := wire.NewWire(cfg, log)
 	defer cleanup()
 	if err != nil {
 		panic(err)

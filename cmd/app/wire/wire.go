@@ -4,18 +4,19 @@
 package wire
 
 import (
-	"github.com/Closi-App/backend/internal/config"
 	"github.com/Closi-App/backend/internal/delivery/http"
 	"github.com/Closi-App/backend/internal/delivery/http/v1"
-	"github.com/Closi-App/backend/internal/logger"
 	"github.com/Closi-App/backend/internal/repository"
 	"github.com/Closi-App/backend/internal/service"
 	"github.com/Closi-App/backend/pkg/app"
+	"github.com/Closi-App/backend/pkg/database/mongo"
+	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
+	"github.com/spf13/viper"
 )
 
 var repositorySet = wire.NewSet(
-	repository.NewDB,
+	mongo.NewMongo,
 	repository.NewRepository,
 	repository.NewUserRepository,
 )
@@ -30,13 +31,12 @@ var deliverySet = wire.NewSet(
 	http.NewServer,
 )
 
-func newApp(httpServer *http.Server) *app.App {
-	return app.NewApp(httpServer)
+func newApp(cfg *viper.Viper, log *logger.Logger, httpServer *http.Server) *app.App {
+	return app.NewApp(cfg, log, httpServer)
 }
 
-func NewWire(*config.Config) (*app.App, func(), error) {
+func NewWire(*viper.Viper, *logger.Logger) (*app.App, func(), error) {
 	panic(wire.Build(
-		logger.NewZerolog,
 		repositorySet,
 		serviceSet,
 		deliverySet,

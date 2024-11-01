@@ -3,14 +3,12 @@ package http
 import (
 	"context"
 	"fmt"
-	"github.com/Closi-App/backend/internal/config"
 	"github.com/Closi-App/backend/internal/delivery/http/v1"
-	"github.com/Closi-App/backend/internal/logger"
+	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
+	"github.com/spf13/viper"
 )
 
 type Server struct {
@@ -18,19 +16,17 @@ type Server struct {
 	address string
 }
 
-func NewServer(cfg *config.Config, log logger.Logger, handler *v1.Handler) *Server {
+func NewServer(cfg *viper.Viper, log *logger.Logger, handler *v1.Handler) *Server {
 	engine := fiber.New(fiber.Config{
-		AppName:      cfg.App.Name,
-		ReadTimeout:  cfg.HTTP.ReadTimeout,
-		WriteTimeout: cfg.HTTP.WriteTimeout,
-		IdleTimeout:  cfg.HTTP.IdleTimeout,
+		AppName:      cfg.GetString("app.name"),
+		ReadTimeout:  cfg.GetDuration("http.read_timeout"),
+		WriteTimeout: cfg.GetDuration("http.write_timeout"),
+		IdleTimeout:  cfg.GetDuration("http.idle_timeout"),
 	})
 
-	zerologLogger := log.Logger().(zerolog.Logger)
-
 	engine.Use(
-		fiberzerolog.New(fiberzerolog.Config{ // TODO: implement custom logger middleware
-			Logger: &zerologLogger,
+		fiberzerolog.New(fiberzerolog.Config{
+			Logger: &log.Logger,
 		}),
 		recover.New(),
 	)
@@ -39,20 +35,14 @@ func NewServer(cfg *config.Config, log logger.Logger, handler *v1.Handler) *Serv
 
 	return &Server{
 		App:     engine,
-		address: fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port),
+		address: fmt.Sprintf("%s:%d", cfg.GetString("http.host"), cfg.GetInt("http.port")),
 	}
 }
 
 func (s *Server) Start(context.Context) error {
-	if err := s.Listen(s.address); err != nil {
-		return errors.Wrap(err, "error starting http server")
-	}
-	return nil
+	return s.Listen(s.address)
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	if err := s.ShutdownWithContext(ctx); err != nil {
-		return errors.Wrap(err, "error stopping http server")
-	}
-	return nil
+	return s.ShutdownWithContext(ctx)
 }
