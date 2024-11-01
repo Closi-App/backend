@@ -19,10 +19,6 @@ func NewApp(servers ...Server) *App {
 }
 
 func (app *App) Run(ctx context.Context) {
-	if len(app.servers) == 0 {
-		panic("no servers to run")
-	}
-
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
