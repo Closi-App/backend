@@ -13,9 +13,10 @@ const userCollectionName = "users"
 type UserRepository interface {
 	Create(ctx context.Context, user domain.User) error
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
-	GetByCredentials(ctx context.Context, usernameOrEmail string, password string) (domain.User, error)
+	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error)
 	Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
+	SetSession(ctx context.Context, id bson.ObjectID, session domain.Session) error
 }
 
 type userRepository struct {
@@ -57,19 +58,14 @@ func (r *userRepository) GetByID(ctx context.Context, id bson.ObjectID) (domain.
 	return user, nil
 }
 
-func (r *userRepository) GetByCredentials(ctx context.Context, usernameOrEmail string, password string) (domain.User, error) {
+func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error) {
 	var user domain.User
 
 	err := r.db.Collection(userCollectionName).
-		FindOne(ctx, bson.M{
-			"$and": bson.M{
-				"$or": bson.M{
-					"username": usernameOrEmail,
-					"email":    usernameOrEmail,
-				},
-				"password": password,
-			},
-		}).
+		FindOne(ctx, bson.M{"$or": bson.M{
+			"username": usernameOrEmail,
+			"email":    usernameOrEmail,
+		}}).
 		Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -121,6 +117,13 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input Use
 func (r *userRepository) Delete(ctx context.Context, id bson.ObjectID) error {
 	_, err := r.db.Collection(userCollectionName).
 		DeleteOne(ctx, bson.M{"_id": id})
+
+	return err
+}
+
+func (r *userRepository) SetSession(ctx context.Context, id bson.ObjectID, session domain.Session) error {
+	_, err := r.db.Collection(userCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"session": session}})
 
 	return err
 }

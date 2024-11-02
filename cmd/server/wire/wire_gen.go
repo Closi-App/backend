@@ -7,11 +7,12 @@
 package wire
 
 import (
+	"github.com/Closi-App/backend/internal/app"
 	"github.com/Closi-App/backend/internal/delivery/http"
 	"github.com/Closi-App/backend/internal/delivery/http/v1"
 	"github.com/Closi-App/backend/internal/repository"
 	"github.com/Closi-App/backend/internal/service"
-	"github.com/Closi-App/backend/pkg/app"
+	"github.com/Closi-App/backend/pkg/auth"
 	"github.com/Closi-App/backend/pkg/database/mongo"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
@@ -25,8 +26,10 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	database := mongo.NewMongo(viperViper)
 	repositoryRepository := repository.NewRepository(loggerLogger, database)
 	userRepository := repository.NewUserRepository(repositoryRepository)
-	userService := service.NewUserService(serviceService, userRepository)
-	handler := v1.NewHandler(loggerLogger, userService)
+	passwordHasher := auth.NewPasswordHasher(viperViper)
+	tokensManager := auth.NewTokensManager(viperViper)
+	userService := service.NewUserService(serviceService, viperViper, userRepository, passwordHasher, tokensManager)
+	handler := v1.NewHandler(loggerLogger, userService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {
@@ -35,7 +38,9 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 
 // wire.go:
 
-var repositorySet = wire.NewSet(mongo.NewMongo, repository.NewRepository, repository.NewUserRepository)
+var pkgSet = wire.NewSet(mongo.NewMongo, auth.NewTokensManager, auth.NewPasswordHasher)
+
+var repositorySet = wire.NewSet(repository.NewRepository, repository.NewUserRepository)
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService)
 

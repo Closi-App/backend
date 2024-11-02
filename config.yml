@@ -15,3 +15,15 @@ http:
 mongo:
   uri: "mongodb+srv://xxehwuq:hEWl8aQa1LSNCk3J@closi.pe58k.mongodb.net"
   database: "Closi"
+
+auth:
+  password:
+    salt: "q2lU1IzVZc3V6ehzsolRA0tZU0gSftbC30KJNlZYJ8jERSCw5R442pguuTSiDUM"
+
+  tokens:
+    access_token:
+      signing_key: "m0Tvu66drOHfNX7B8cEgtHePBFTjNTjOgsceOrX8MF57AjvkS7MBE6Lw26bG4OD"
+      ttl: 15m
+    refresh_token:
+      length: 32
+      ttl: 30d

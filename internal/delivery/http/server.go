@@ -18,7 +18,7 @@ type Server struct {
 
 func NewServer(cfg *viper.Viper, log *logger.Logger, handler *v1.Handler) *Server {
 	engine := fiber.New(fiber.Config{
-		AppName:      cfg.GetString("app.name"),
+		AppName:      cfg.GetString("server.name"),
 		ReadTimeout:  cfg.GetDuration("http.read_timeout"),
 		WriteTimeout: cfg.GetDuration("http.write_timeout"),
 		IdleTimeout:  cfg.GetDuration("http.idle_timeout"),

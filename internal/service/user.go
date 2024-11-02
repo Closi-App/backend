@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/Closi-App/backend/internal/domain"
 	"github.com/Closi-App/backend/internal/repository"
+	"github.com/Closi-App/backend/pkg/auth"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
 )
@@ -18,13 +20,25 @@ type UserService interface {
 
 type userService struct {
 	*Service
-	repository repository.UserRepository
+	repository      repository.UserRepository
+	passwordHasher  auth.PasswordHasher
+	tokensManager   auth.TokensManager
+	refreshTokenTTL time.Duration
 }
 
-func NewUserService(service *Service, repository repository.UserRepository) UserService {
+func NewUserService(
+	service *Service,
+	cfg *viper.Viper,
+	repository repository.UserRepository,
+	passwordHasher auth.PasswordHasher,
+	tokensManager auth.TokensManager,
+) UserService {
 	return &userService{
-		Service:    service,
-		repository: repository,
+		Service:         service,
+		repository:      repository,
+		passwordHasher:  passwordHasher,
+		tokensManager:   tokensManager,
+		refreshTokenTTL: cfg.GetDuration("auth.tokens.refresh_token.ttl"),
 	}
 }
 
@@ -35,16 +49,15 @@ type UserSignUpInput struct {
 	Password string
 }
 
-type Tokens struct {
-	AccessToken  string
-	RefreshToken string
-}
-
 func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens, error) {
 	id := bson.NewObjectID()
-	hashedPassword := input.Password // TODO
 
-	err := s.repository.Create(ctx, domain.User{
+	hashedPassword, err := s.passwordHasher.Hash(input.Password)
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	if err := s.repository.Create(ctx, domain.User{
 		ID:                      id,
 		Name:                    input.Name,
 		Username:                input.Username,
@@ -57,8 +70,7 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		NotificationPreferences: domain.NotificationPreferences{Email: true, Push: true},
 		CreatedAt:               time.Now(),
 		UpdatedAt:               time.Now(),
-	})
-	if err != nil {
+	}); err != nil {
 		return Tokens{}, err
 	}
 
@@ -71,9 +83,13 @@ type UserSignInInput struct {
 }
 
 func (s *userService) SignIn(ctx context.Context, input UserSignInInput) (Tokens, error) {
-	user, err := s.repository.GetByCredentials(ctx, input.UsernameOrEmail, input.Password)
+	user, err := s.repository.GetByUsernameOrEmail(ctx, input.UsernameOrEmail)
 	if err != nil {
 		return Tokens{}, err
+	}
+
+	if !s.passwordHasher.Check(user.Password, input.Password) {
+		return Tokens{}, domain.ErrUserNotFound
 	}
 
 	return s.createSession(ctx, user.ID)
@@ -93,12 +109,19 @@ type UserUpdateInput struct {
 }
 
 func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error {
-	var hashedPassword string
+	var (
+		hashedPassword string
+		err            error
+	)
+
 	if input.Password != "" {
-		hashedPassword = input.Password // TODO
+		hashedPassword, err = s.passwordHasher.Hash(input.Password)
+		if err != nil {
+			return err
+		}
 	}
 
-	err := s.repository.Update(ctx, id, repository.UserUpdateInput{
+	return s.repository.Update(ctx, id, repository.UserUpdateInput{
 		Name:                    input.Name,
 		Username:                input.Username,
 		Email:                   input.Email,
@@ -106,15 +129,39 @@ func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUp
 		AvatarURL:               input.AvatarURL,
 		NotificationPreferences: &input.NotificationPreferences,
 	})
-
-	return err
 }
 
 func (s *userService) Delete(ctx context.Context, id bson.ObjectID) error {
 	return s.repository.Delete(ctx, id)
 }
 
+type Tokens struct {
+	AccessToken  string
+	RefreshToken string
+}
+
 func (s *userService) createSession(ctx context.Context, id bson.ObjectID) (Tokens, error) {
-	//TODO implement me
-	panic("implement me")
+	var (
+		tokens Tokens
+		err    error
+	)
+
+	tokens.AccessToken, err = s.tokensManager.NewAccessToken(id.Hex())
+	if err != nil {
+		return tokens, err
+	}
+
+	tokens.RefreshToken, err = s.tokensManager.NewRefreshToken()
+	if err != nil {
+		return tokens, err
+	}
+
+	session := domain.Session{
+		RefreshToken: tokens.RefreshToken,
+		ExpiresAt:    time.Now().Add(s.refreshTokenTTL),
+	}
+
+	err = s.repository.SetSession(ctx, id, session)
+
+	return tokens, err
 }

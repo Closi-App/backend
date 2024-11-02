@@ -1,8 +1,11 @@
 package v1
 
 import (
+	"errors"
 	"github.com/Closi-App/backend/internal/domain"
+	"github.com/Closi-App/backend/internal/service"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func (h *Handler) initUserRoutes(router fiber.Router) {
@@ -29,7 +32,28 @@ type userSignUpResponse struct {
 }
 
 func (h *Handler) userSignUp(ctx *fiber.Ctx) error {
-	return ctx.SendStatus(fiber.StatusOK)
+	var req userSignUpRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	tokens, err := h.userService.SignUp(ctx.Context(), service.UserSignUpInput{
+		Name:     req.Name,
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
+			return h.newResponse(ctx, fiber.StatusBadRequest, err)
+		}
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, userSignUpResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
 }
 
 type userSignInRequest struct {
@@ -43,15 +67,61 @@ type userSignInResponse struct {
 }
 
 func (h *Handler) userSignIn(ctx *fiber.Ctx) error {
-	return ctx.SendStatus(fiber.StatusOK)
+	var req userSignInRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	tokens, err := h.userService.SignIn(ctx.Context(), service.UserSignInInput{
+		UsernameOrEmail: req.UsernameOrEmail,
+		Password:        req.Password,
+	})
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return h.newResponse(ctx, fiber.StatusBadRequest, err)
+		}
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, userSignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
 }
 
 func (h *Handler) userGet(ctx *fiber.Ctx) error {
-	return ctx.SendStatus(fiber.StatusOK)
+	id, err := h.getUserID(ctx)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
+	}
+
+	user, err := h.userService.GetByID(ctx.Context(), id)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return h.newResponse(ctx, fiber.StatusBadRequest, err)
+		}
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, user)
 }
 
 func (h *Handler) userGetByID(ctx *fiber.Ctx) error {
-	return ctx.SendStatus(fiber.StatusOK)
+	id := ctx.Params("id")
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	user, err := h.userService.GetByID(ctx.Context(), objectID)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return h.newResponse(ctx, fiber.StatusBadRequest, err)
+		}
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, user)
 }
 
 type userUpdateRequest struct {
@@ -64,9 +134,39 @@ type userUpdateRequest struct {
 }
 
 func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
-	return ctx.SendStatus(fiber.StatusOK)
+	id, err := h.getUserID(ctx)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
+	}
+
+	var req userUpdateRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	if err := h.userService.Update(ctx.Context(), id, service.UserUpdateInput{
+		Name:                    req.Name,
+		Username:                req.Username,
+		Email:                   req.Email,
+		Password:                req.Password,
+		AvatarURL:               req.AvatarURL,
+		NotificationPreferences: req.NotificationPreferences,
+	}); err != nil {
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, nil)
 }
 
 func (h *Handler) userDelete(ctx *fiber.Ctx) error {
-	return ctx.SendStatus(fiber.StatusOK)
+	id, err := h.getUserID(ctx)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
+	}
+
+	if err := h.userService.Delete(ctx.Context(), id); err != nil {
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, nil)
 }

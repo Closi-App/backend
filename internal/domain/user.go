@@ -1,14 +1,13 @@
 package domain
 
 import (
-	"errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
 )
 
 var (
-	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = NewError("ERR_USER_ALREADY_EXISTS", "user already exists")
+	ErrUserNotFound      = NewError("ERR_USER_NOT_FOUND", "user not found")
 )
 
 type User struct {
