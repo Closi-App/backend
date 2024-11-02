@@ -26,3 +26,6 @@ go.work.sum
 
 # JetBrains IDE folder
 .idea
+
+# Configuration files
+*.yml

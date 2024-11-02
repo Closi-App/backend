@@ -1,3 +1,7 @@
+# Closi
+
+`config.yml`:
+```yaml
 app:
   name: "Closi"
 
@@ -13,17 +17,18 @@ http:
   idle_timeout: 60s
 
 mongo:
-  uri: "mongodb+srv://xxehwuq:hEWl8aQa1LSNCk3J@closi.pe58k.mongodb.net"
-  database: "Closi"
+  uri: ""
+  database: ""
 
 auth:
   password:
-    salt: "q2lU1IzVZc3V6ehzsolRA0tZU0gSftbC30KJNlZYJ8jERSCw5R442pguuTSiDUM"
+    salt: ""
 
   tokens:
     access_token:
-      signing_key: "m0Tvu66drOHfNX7B8cEgtHePBFTjNTjOgsceOrX8MF57AjvkS7MBE6Lw26bG4OD"
+      signing_key: ""
       ttl: 15m
     refresh_token:
       length: 32
       ttl: 30d
+```
