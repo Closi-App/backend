@@ -31,13 +31,18 @@ func (h *Handler) authMiddleware(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	ctx.Set(userCtxKey, userID)
+	ctx.Locals(userCtxKey, userID)
 
 	return ctx.Next()
 }
 
 func (h *Handler) getUserID(ctx *fiber.Ctx) (bson.ObjectID, error) {
-	objectID, err := bson.ObjectIDFromHex(ctx.Get(userCtxKey))
+	id, ok := ctx.Locals(userCtxKey).(string)
+	if !ok {
+		return bson.ObjectID{}, errors.New("error getting user id from context")
+	}
+
+	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return bson.ObjectID{}, errors.New("invalid object id")
 	}
