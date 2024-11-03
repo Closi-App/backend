@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"time"
 )
 
 type UserRepository interface {
@@ -120,6 +121,8 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input Use
 	if input.NotificationPreferences != nil {
 		updateQuery["notification_preferences"] = input.NotificationPreferences
 	}
+
+	updateQuery["updated_at"] = time.Now()
 
 	_, err := r.db.Collection(domain.UserCollectionName).
 		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updateQuery})
