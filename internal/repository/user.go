@@ -62,9 +62,9 @@ func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEma
 	var user domain.User
 
 	err := r.db.Collection(userCollectionName).
-		FindOne(ctx, bson.M{"$or": bson.M{
-			"username": usernameOrEmail,
-			"email":    usernameOrEmail,
+		FindOne(ctx, bson.M{"$or": []interface{}{
+			bson.M{"username": usernameOrEmail},
+			bson.M{"email": usernameOrEmail},
 		}}).
 		Decode(&user)
 	if err != nil {
