@@ -13,6 +13,7 @@ import (
 type UserService interface {
 	SignUp(ctx context.Context, input UserSignUpInput) (Tokens, error)
 	SignIn(ctx context.Context, input UserSignInInput) (Tokens, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
 	Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
@@ -74,6 +75,8 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		return Tokens{}, err
 	}
 
+	// TODO: sending confirmation email
+
 	return s.createSession(ctx, id)
 }
 
@@ -94,6 +97,17 @@ func (s *userService) SignIn(ctx context.Context, input UserSignInInput) (Tokens
 
 	return s.createSession(ctx, user.ID)
 }
+
+func (s *userService) RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error) {
+	user, err := s.repository.GetByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	return s.createSession(ctx, user.ID)
+}
+
+// TODO: user confirmation
 
 func (s *userService) GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error) {
 	return s.repository.GetByID(ctx, id)
@@ -120,6 +134,8 @@ func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUp
 			return err
 		}
 	}
+
+	// TODO: sending confirmation email if email was updated
 
 	return s.repository.Update(ctx, id, repository.UserUpdateInput{
 		Name:                    input.Name,

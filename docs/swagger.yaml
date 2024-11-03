@@ -60,6 +60,18 @@ definitions:
       message:
         type: string
     type: object
+  v1.userRefreshRequest:
+    properties:
+      token:
+        type: string
+    type: object
+  v1.userRefreshResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   v1.userSignInRequest:
     properties:
       password:
@@ -233,6 +245,36 @@ paths:
           schema:
             $ref: '#/definitions/v1.errorResponse'
       summary: Get User by ID
+      tags:
+      - users
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the user's access and refresh tokens
+      parameters:
+      - description: Request
+        in: body
+        name: userRefreshRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userRefreshResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Refresh tokens
       tags:
       - users
   /users/sign-in:

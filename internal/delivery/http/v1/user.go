@@ -13,6 +13,7 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 	{
 		users.Post("/sign-up", h.userSignUp)
 		users.Post("/sign-in", h.userSignIn)
+		users.Post("/refresh", h.userRefresh)
 		users.Get("/", h.authMiddleware, h.userGet)
 		users.Get("/:id", h.userGetByID)
 		users.Put("/", h.authMiddleware, h.userUpdate)
@@ -103,6 +104,45 @@ func (h *Handler) userSignIn(ctx *fiber.Ctx) error {
 	}
 
 	return h.newResponse(ctx, fiber.StatusOK, userSignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
+}
+
+type userRefreshRequest struct {
+	Token string `json:"token"`
+}
+
+type userRefreshResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// @Summary		Refresh tokens
+// @Description	Refresh the user's access and refresh tokens
+// @Tags			users
+// @Accept			json
+// @Produce		json
+// @Param			userRefreshRequest	body		userRefreshRequest	true	"Request"
+// @Success		200					{object}	userRefreshResponse
+// @Failure		400,500				{object}	errorResponse
+// @Router			/users/refresh [post]
+func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
+	var req userRefreshRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	tokens, err := h.userService.RefreshTokens(ctx.Context(), req.Token)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return h.newResponse(ctx, fiber.StatusBadRequest, err)
+		}
+
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, userRefreshResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	})
