@@ -22,9 +22,8 @@ func NewHandler(log *logger.Logger, userService service.UserService, tokensManag
 }
 
 func (h *Handler) InitRoutes(router fiber.Router) {
-	router.Get("/ping", func(ctx *fiber.Ctx) error {
-		return ctx.SendString("pong")
-	})
-
-	h.initUserRoutes(router)
+	v1 := router.Group("/v1")
+	{
+		h.initUserRoutes(v1)
+	}
 }

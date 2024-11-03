@@ -3,11 +3,13 @@ package http
 import (
 	"context"
 	"fmt"
+	_ "github.com/Closi-App/backend/docs"
 	"github.com/Closi-App/backend/internal/delivery/http/v1"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/swagger"
 	"github.com/spf13/viper"
 )
 
@@ -31,6 +33,7 @@ func NewServer(cfg *viper.Viper, log *logger.Logger, handler *v1.Handler) *Serve
 		recover.New(),
 	)
 
+	engine.Get("/swagger/*", swagger.HandlerDefault)
 	handler.InitRoutes(engine.Group("/api"))
 
 	return &Server{

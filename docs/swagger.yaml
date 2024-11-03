@@ -1,0 +1,307 @@
+basePath: /api/v1/
+definitions:
+  domain.NotificationPreferences:
+    properties:
+      email:
+        type: boolean
+      push:
+        type: boolean
+    type: object
+  domain.Subscription:
+    properties:
+      expires_at:
+        type: string
+      type:
+        $ref: '#/definitions/domain.SubscriptionType'
+    type: object
+  domain.SubscriptionType:
+    enum:
+    - free
+    - monthly
+    - annual
+    type: string
+    x-enum-varnames:
+    - FreeSubscription
+    - MonthlySubscription
+    - AnnualSubscription
+  domain.User:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      favorites:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      notification_preferences:
+        $ref: '#/definitions/domain.NotificationPreferences'
+      password:
+        type: string
+      points:
+        type: integer
+      subscription:
+        $ref: '#/definitions/domain.Subscription'
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  v1.errorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  v1.userSignInRequest:
+    properties:
+      password:
+        type: string
+      username_or_email:
+        type: string
+    type: object
+  v1.userSignInResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  v1.userSignUpRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  v1.userSignUpResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  v1.userUpdateRequest:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      notification_preferences:
+        $ref: '#/definitions/domain.NotificationPreferences'
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+host: 127.0.0.1:8080
+info:
+  contact: {}
+  description: REST API for Closi App
+  title: Closi API
+  version: "1.0"
+paths:
+  /users:
+    delete:
+      consumes:
+      - application/json
+      description: Delete the authenticated user's account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Delete Current User
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the currently authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Get Current User
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update the authenticated user's information
+      parameters:
+      - description: Request
+        in: body
+        name: userUpdateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Update Current User
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's information by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get User by ID
+      tags:
+      - users
+  /users/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and retrieve tokens
+      parameters:
+      - description: Request
+        in: body
+        name: userSignInRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userSignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userSignInResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Sign In
+      tags:
+      - users
+  /users/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Request
+        in: body
+        name: userSignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.userSignUpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Sign Up
+      tags:
+      - users
+securityDefinitions:
+  UserAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
