@@ -30,5 +30,5 @@ auth:
       ttl: 15m
     refresh_token:
       length: 32
-      ttl: 30d
+      ttl: 720h
 ```
