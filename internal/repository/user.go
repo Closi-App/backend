@@ -6,9 +6,8 @@ import (
 	"github.com/Closi-App/backend/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
-
-const userCollectionName = "users"
 
 type UserRepository interface {
 	Create(ctx context.Context, user domain.User) error
@@ -24,13 +23,27 @@ type userRepository struct {
 }
 
 func NewUserRepository(repository *Repository) UserRepository {
+	emailIndex := mongo.IndexModel{
+		Keys:    bson.M{"email": 1},
+		Options: options.Index().SetUnique(true),
+	}
+	usernameIndex := mongo.IndexModel{
+		Keys:    bson.M{"username": 1},
+		Options: options.Index().SetUnique(true),
+	}
+
+	if _, err := repository.db.Collection(domain.UserCollectionName).
+		Indexes().CreateMany(context.Background(), []mongo.IndexModel{emailIndex, usernameIndex}); err != nil {
+		panic("error creating user indexes: " + err.Error())
+	}
+
 	return &userRepository{
 		Repository: repository,
 	}
 }
 
 func (r *userRepository) Create(ctx context.Context, user domain.User) error {
-	_, err := r.db.Collection(userCollectionName).
+	_, err := r.db.Collection(domain.UserCollectionName).
 		InsertOne(ctx, user)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
@@ -45,7 +58,7 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 func (r *userRepository) GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error) {
 	var user domain.User
 
-	err := r.db.Collection(userCollectionName).
+	err := r.db.Collection(domain.UserCollectionName).
 		FindOne(ctx, bson.M{"_id": id}).
 		Decode(&user)
 	if err != nil {
@@ -61,7 +74,7 @@ func (r *userRepository) GetByID(ctx context.Context, id bson.ObjectID) (domain.
 func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error) {
 	var user domain.User
 
-	err := r.db.Collection(userCollectionName).
+	err := r.db.Collection(domain.UserCollectionName).
 		FindOne(ctx, bson.M{"$or": []interface{}{
 			bson.M{"username": usernameOrEmail},
 			bson.M{"email": usernameOrEmail},
@@ -108,21 +121,21 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input Use
 		updateQuery["notification_preferences"] = input.NotificationPreferences
 	}
 
-	_, err := r.db.Collection(userCollectionName).
+	_, err := r.db.Collection(domain.UserCollectionName).
 		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updateQuery})
 
 	return err
 }
 
 func (r *userRepository) Delete(ctx context.Context, id bson.ObjectID) error {
-	_, err := r.db.Collection(userCollectionName).
+	_, err := r.db.Collection(domain.UserCollectionName).
 		DeleteOne(ctx, bson.M{"_id": id})
 
 	return err
 }
 
 func (r *userRepository) SetSession(ctx context.Context, id bson.ObjectID, session domain.Session) error {
-	_, err := r.db.Collection(userCollectionName).
+	_, err := r.db.Collection(domain.UserCollectionName).
 		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"session": session}})
 
 	return err

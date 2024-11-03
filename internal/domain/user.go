@@ -11,6 +11,8 @@ var (
 )
 
 const (
+	UserCollectionName = "users"
+
 	DefaultUserPoints = 10
 )
 
