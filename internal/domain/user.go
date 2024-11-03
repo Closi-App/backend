@@ -10,6 +10,10 @@ var (
 	ErrUserNotFound      = NewError("ERR_USER_NOT_FOUND", "user not found")
 )
 
+const (
+	DefaultUserPoints = 10
+)
+
 type User struct {
 	ID                      bson.ObjectID           `bson:"_id" json:"id"`
 	Name                    string                  `bson:"name" json:"name"`

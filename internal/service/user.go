@@ -64,7 +64,7 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		Email:                   input.Email,
 		Password:                hashedPassword,
 		AvatarURL:               "",
-		Points:                  0,
+		Points:                  domain.DefaultUserPoints,
 		Favorites:               nil,
 		Subscription:            domain.NewSubscription(domain.FreeSubscription),
 		NotificationPreferences: domain.NotificationPreferences{Email: true, Push: true},
