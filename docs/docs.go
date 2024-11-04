@@ -15,6 +15,258 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/questions": {
+            "get": {
+                "description": "Retrieve a list of all questions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "questions"
+                ],
+                "summary": "Get all questions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Question"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Create a new question",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "questions"
+                ],
+                "summary": "Create question",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "questionCreateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.questionCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/questions/{id}": {
+            "get": {
+                "description": "Retrieve a specific question by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "questions"
+                ],
+                "summary": "Get question by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Question"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Update the details of a specific question by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "questions"
+                ],
+                "summary": "Update question",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request",
+                        "name": "questionUpdateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.questionUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Delete a specific question by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "questions"
+                ],
+                "summary": "Delete question",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -32,7 +284,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Get Current User",
+                "summary": "Get current user",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -76,7 +328,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Update Current User",
+                "summary": "Update current user",
                 "parameters": [
                     {
                         "description": "Request",
@@ -131,7 +383,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Delete Current User",
+                "summary": "Delete current user",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -212,7 +464,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Sign In",
+                "summary": "Sign in",
                 "parameters": [
                     {
                         "description": "Request",
@@ -258,7 +510,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Sign Up",
+                "summary": "Sign up",
                 "parameters": [
                     {
                         "description": "Request",
@@ -310,7 +562,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Get User by ID",
+                "summary": "Get user by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -350,6 +602,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.Location": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.NotificationPreferences": {
             "type": "object",
             "properties": {
@@ -358,6 +618,41 @@ const docTemplate = `{
                 },
                 "push": {
                     "type": "boolean"
+                }
+            }
+        },
+        "domain.Question": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -406,6 +701,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -436,6 +734,52 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.questionCreateRequest": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.questionUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -487,6 +831,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -517,6 +864,9 @@ const docTemplate = `{
                 },
                 "email": {
                     "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
                 },
                 "name": {
                     "type": "string"

@@ -61,8 +61,7 @@ func (r *userRepository) GetByID(ctx context.Context, id bson.ObjectID) (domain.
 	var user domain.User
 
 	err := r.db.Collection(domain.UserCollectionName).
-		FindOne(ctx, bson.M{"_id": id}).
-		Decode(&user)
+		FindOne(ctx, bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -80,8 +79,7 @@ func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEma
 		FindOne(ctx, bson.M{"$or": []interface{}{
 			bson.M{"username": usernameOrEmail},
 			bson.M{"email": usernameOrEmail},
-		}}).
-		Decode(&user)
+		}}).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -115,6 +113,7 @@ type UserUpdateInput struct {
 	Email                   string
 	Password                string
 	AvatarURL               string
+	Location                *domain.Location
 	NotificationPreferences *domain.NotificationPreferences
 }
 
@@ -135,6 +134,9 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input Use
 	}
 	if input.AvatarURL != "" {
 		updateQuery["avatar_url"] = input.AvatarURL
+	}
+	if input.Location != nil {
+		updateQuery["location"] = input.Location
 	}
 	if input.NotificationPreferences != nil {
 		updateQuery["notification_preferences"] = input.NotificationPreferences

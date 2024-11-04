@@ -14,18 +14,23 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 		users.Post("/sign-up", h.userSignUp)
 		users.Post("/sign-in", h.userSignIn)
 		users.Post("/refresh", h.userRefresh)
-		users.Get("/", h.authMiddleware, h.userGet)
 		users.Get("/:id", h.userGetByID)
-		users.Put("/", h.authMiddleware, h.userUpdate)
-		users.Delete("/", h.authMiddleware, h.userDelete)
+
+		auth := users.Group("", h.authMiddleware)
+		{
+			auth.Get("/", h.userGet)
+			auth.Put("/", h.userUpdate)
+			auth.Delete("/", h.userDelete)
+		}
 	}
 }
 
 type userSignUpRequest struct {
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name     string          `json:"name"`
+	Username string          `json:"username"`
+	Email    string          `json:"email"`
+	Password string          `json:"password"`
+	Location domain.Location `json:"location"`
 }
 
 type userSignUpResponse struct {
@@ -33,7 +38,7 @@ type userSignUpResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// @Summary		Sign Up
+// @Summary		Sign up
 // @Description	Create a new user account
 // @Tags			users
 // @Accept			json
@@ -53,6 +58,7 @@ func (h *Handler) userSignUp(ctx *fiber.Ctx) error {
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
+		Location: req.Location,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUserAlreadyExists) {
@@ -77,7 +83,7 @@ type userSignInResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// @Summary		Sign In
+// @Summary		Sign in
 // @Description	Authenticate a user and retrieve tokens
 // @Tags			users
 // @Accept			json
@@ -148,7 +154,7 @@ func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
 	})
 }
 
-// @Summary		Get Current User
+// @Summary		Get current user
 // @Description	Retrieve the currently authenticated user's information
 // @Security		UserAuth
 // @Tags			users
@@ -158,12 +164,12 @@ func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/users [get]
 func (h *Handler) userGet(ctx *fiber.Ctx) error {
-	id, err := h.getUserID(ctx)
+	ctxUser, err := h.getUserFromCtx(ctx)
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
-	user, err := h.userService.GetByID(ctx.Context(), id)
+	user, err := h.userService.GetByID(ctx.Context(), ctxUser.ID)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return h.newResponse(ctx, fiber.StatusBadRequest, err)
@@ -174,7 +180,7 @@ func (h *Handler) userGet(ctx *fiber.Ctx) error {
 	return h.newResponse(ctx, fiber.StatusOK, user)
 }
 
-// @Summary		Get User by ID
+// @Summary		Get user by ID
 // @Description	Retrieve a user's information by their ID
 // @Tags			users
 // @Accept			json
@@ -207,10 +213,11 @@ type userUpdateRequest struct {
 	Email                   string                         `json:"email"`
 	Password                string                         `json:"password"`
 	AvatarURL               string                         `json:"avatar_url"`
+	Location                domain.Location                `json:"location"`
 	NotificationPreferences domain.NotificationPreferences `json:"notification_preferences"`
 }
 
-// @Summary		Update Current User
+// @Summary		Update current user
 // @Description	Update the authenticated user's information
 // @Security		UserAuth
 // @Tags			users
@@ -221,7 +228,7 @@ type userUpdateRequest struct {
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/users [put]
 func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
-	id, err := h.getUserID(ctx)
+	ctxUser, err := h.getUserFromCtx(ctx)
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
@@ -231,12 +238,13 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	if err := h.userService.Update(ctx.Context(), id, service.UserUpdateInput{
+	if err := h.userService.Update(ctx.Context(), ctxUser.ID, service.UserUpdateInput{
 		Name:                    req.Name,
 		Username:                req.Username,
 		Email:                   req.Email,
 		Password:                req.Password,
 		AvatarURL:               req.AvatarURL,
+		Location:                req.Location,
 		NotificationPreferences: req.NotificationPreferences,
 	}); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
@@ -245,7 +253,7 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 	return h.newResponse(ctx, fiber.StatusOK, nil)
 }
 
-// @Summary		Delete Current User
+// @Summary		Delete current user
 // @Description	Delete the authenticated user's account
 // @Security		UserAuth
 // @Tags			users
@@ -255,12 +263,12 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 // @Failure		401,500	{object}	errorResponse
 // @Router			/users [delete]
 func (h *Handler) userDelete(ctx *fiber.Ctx) error {
-	id, err := h.getUserID(ctx)
+	ctxUser, err := h.getUserFromCtx(ctx)
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
-	if err := h.userService.Delete(ctx.Context(), id); err != nil {
+	if err := h.userService.Delete(ctx.Context(), ctxUser.ID); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 

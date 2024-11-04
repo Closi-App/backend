@@ -48,6 +48,7 @@ type UserSignUpInput struct {
 	Username string
 	Email    string
 	Password string
+	Location domain.Location
 }
 
 func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens, error) {
@@ -65,6 +66,7 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		Email:                   input.Email,
 		Password:                hashedPassword,
 		AvatarURL:               "",
+		Location:                input.Location,
 		Points:                  domain.DefaultUserPoints,
 		Favorites:               nil,
 		Subscription:            domain.NewSubscription(domain.FreeSubscription),
@@ -119,6 +121,7 @@ type UserUpdateInput struct {
 	Email                   string
 	Password                string
 	AvatarURL               string
+	Location                domain.Location
 	NotificationPreferences domain.NotificationPreferences
 }
 
@@ -143,6 +146,7 @@ func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUp
 		Email:                   input.Email,
 		Password:                hashedPassword,
 		AvatarURL:               input.AvatarURL,
+		Location:                &input.Location,
 		NotificationPreferences: &input.NotificationPreferences,
 	})
 }

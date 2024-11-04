@@ -23,6 +23,7 @@ type User struct {
 	Email                   string                  `bson:"email" json:"email"`
 	Password                string                  `bson:"password" json:"password"`
 	AvatarURL               string                  `bson:"avatar_url" json:"avatar_url"`
+	Location                Location                `bson:"location" json:"location"`
 	Points                  uint                    `bson:"points" json:"points"`
 	Favorites               []bson.ObjectID         `bson:"favorites" json:"favorites"`
 	Subscription            Subscription            `bson:"subscription" json:"subscription"`

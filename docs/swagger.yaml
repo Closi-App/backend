@@ -1,11 +1,39 @@
 basePath: /api/v1/
 definitions:
+  domain.Location:
+    properties:
+      country:
+        type: string
+    type: object
   domain.NotificationPreferences:
     properties:
       email:
         type: boolean
       push:
         type: boolean
+    type: object
+  domain.Question:
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      location:
+        $ref: '#/definitions/domain.Location'
+      points:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
     type: object
   domain.Subscription:
     properties:
@@ -38,6 +66,8 @@ definitions:
         type: array
       id:
         type: string
+      location:
+        $ref: '#/definitions/domain.Location'
       name:
         type: string
       notification_preferences:
@@ -58,6 +88,36 @@ definitions:
       code:
         type: string
       message:
+        type: string
+    type: object
+  v1.questionCreateRequest:
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      location:
+        $ref: '#/definitions/domain.Location'
+      points:
+        type: integer
+      title:
+        type: string
+    type: object
+  v1.questionUpdateRequest:
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      location:
+        $ref: '#/definitions/domain.Location'
+      points:
+        type: integer
+      title:
         type: string
     type: object
   v1.userRefreshRequest:
@@ -90,6 +150,8 @@ definitions:
     properties:
       email:
         type: string
+      location:
+        $ref: '#/definitions/domain.Location'
       name:
         type: string
       password:
@@ -110,6 +172,8 @@ definitions:
         type: string
       email:
         type: string
+      location:
+        $ref: '#/definitions/domain.Location'
       name:
         type: string
       notification_preferences:
@@ -126,6 +190,169 @@ info:
   title: Closi API
   version: "1.0"
 paths:
+  /questions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all questions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Question'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get all questions
+      tags:
+      - questions
+    post:
+      consumes:
+      - application/json
+      description: Create a new question
+      parameters:
+      - description: Request
+        in: body
+        name: questionCreateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.questionCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Create question
+      tags:
+      - questions
+  /questions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific question by ID
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Delete question
+      tags:
+      - questions
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific question by its ID
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Question'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get question by ID
+      tags:
+      - questions
+    put:
+      consumes:
+      - application/json
+      description: Update the details of a specific question by ID
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: questionUpdateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.questionUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Update question
+      tags:
+      - questions
   /users:
     delete:
       consumes:
@@ -148,7 +375,7 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Delete Current User
+      summary: Delete current user
       tags:
       - users
     get:
@@ -176,7 +403,7 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Get Current User
+      summary: Get current user
       tags:
       - users
     put:
@@ -211,7 +438,7 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Update Current User
+      summary: Update current user
       tags:
       - users
   /users/{id}:
@@ -244,7 +471,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Get User by ID
+      summary: Get user by ID
       tags:
       - users
   /users/refresh:
@@ -304,7 +531,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Sign In
+      summary: Sign in
       tags:
       - users
   /users/sign-up:
@@ -338,7 +565,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Sign Up
+      summary: Sign up
       tags:
       - users
 securityDefinitions:

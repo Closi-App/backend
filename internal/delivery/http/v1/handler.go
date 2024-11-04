@@ -8,16 +8,23 @@ import (
 )
 
 type Handler struct {
-	log           *logger.Logger
-	userService   service.UserService
-	tokensManager auth.TokensManager
+	log             *logger.Logger
+	userService     service.UserService
+	questionService service.QuestionService
+	tokensManager   auth.TokensManager
 }
 
-func NewHandler(log *logger.Logger, userService service.UserService, tokensManager auth.TokensManager) *Handler {
+func NewHandler(
+	log *logger.Logger,
+	userService service.UserService,
+	questionService service.QuestionService,
+	tokensManager auth.TokensManager,
+) *Handler {
 	return &Handler{
-		log:           log,
-		userService:   userService,
-		tokensManager: tokensManager,
+		log:             log,
+		userService:     userService,
+		questionService: questionService,
+		tokensManager:   tokensManager,
 	}
 }
 
@@ -25,5 +32,6 @@ func (h *Handler) InitRoutes(router fiber.Router) {
 	v1 := router.Group("/v1")
 	{
 		h.initUserRoutes(v1)
+		h.initQuestionRoutes(v1)
 	}
 }

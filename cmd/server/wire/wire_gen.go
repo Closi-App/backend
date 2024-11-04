@@ -29,7 +29,9 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	passwordHasher := auth.NewPasswordHasher(viperViper)
 	tokensManager := auth.NewTokensManager(viperViper)
 	userService := service.NewUserService(serviceService, viperViper, userRepository, passwordHasher, tokensManager)
-	handler := v1.NewHandler(loggerLogger, userService, tokensManager)
+	questionRepository := repository.NewQuestionRepository(repositoryRepository)
+	questionService := service.NewQuestionService(serviceService, questionRepository)
+	handler := v1.NewHandler(loggerLogger, userService, questionService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {
@@ -40,9 +42,9 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 
 var pkgSet = wire.NewSet(mongo.NewMongo, auth.NewTokensManager, auth.NewPasswordHasher)
 
-var repositorySet = wire.NewSet(repository.NewRepository, repository.NewUserRepository)
+var repositorySet = wire.NewSet(repository.NewRepository, repository.NewUserRepository, repository.NewQuestionRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService)
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewQuestionService)
 
 var deliverySet = wire.NewSet(v1.NewHandler, http.NewServer)
 
