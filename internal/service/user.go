@@ -44,11 +44,13 @@ func NewUserService(
 }
 
 type UserSignUpInput struct {
-	Name     string
-	Username string
-	Email    string
-	Password string
-	Location domain.Location
+	Name         string
+	Username     string
+	Email        string
+	Password     string
+	Location     domain.Location
+	Language     domain.Language
+	ReferrerCode string
 }
 
 func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens, error) {
@@ -59,22 +61,46 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		return Tokens{}, err
 	}
 
+	referralCode, err := domain.NewReferralCode()
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	input.Language = domain.ParseLanguage(input.Language)
+
 	if err := s.repository.Create(ctx, domain.User{
-		ID:                      id,
-		Name:                    input.Name,
-		Username:                input.Username,
-		Email:                   input.Email,
-		Password:                hashedPassword,
-		AvatarURL:               "",
-		Location:                input.Location,
-		Points:                  domain.DefaultUserPoints,
-		Favorites:               nil,
-		Subscription:            domain.NewSubscription(domain.FreeSubscription),
-		NotificationPreferences: domain.NotificationPreferences{Email: true, Push: true},
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		ID:           id,
+		Name:         input.Name,
+		Username:     input.Username,
+		Email:        input.Email,
+		Password:     hashedPassword,
+		AvatarURL:    "",
+		Points:       domain.UserDefaultPoints,
+		Favorites:    nil,
+		ReferralCode: referralCode,
+		Subscription: domain.NewSubscription(domain.FreeSubscription),
+		Settings: domain.UserSettings{
+			Location:           input.Location,
+			Language:           input.Language,
+			EmailNotifications: true,
+		},
+		IsConfirmed: false,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}); err != nil {
 		return Tokens{}, err
+	}
+
+	if input.ReferrerCode != "" {
+		referrer, err := s.repository.GetByReferralCode(ctx, input.ReferrerCode)
+		if err == nil {
+			if err := s.repository.AddPoints(ctx, referrer.ID, domain.UserReferralPoints); err != nil {
+				return Tokens{}, err
+			}
+			if err := s.repository.AddPoints(ctx, id, domain.UserReferralPoints); err != nil {
+				return Tokens{}, err
+			}
+		}
 	}
 
 	// TODO: sending confirmation email
@@ -116,13 +142,12 @@ func (s *userService) GetByID(ctx context.Context, id bson.ObjectID) (domain.Use
 }
 
 type UserUpdateInput struct {
-	Name                    string
-	Username                string
-	Email                   string
-	Password                string
-	AvatarURL               string
-	Location                domain.Location
-	NotificationPreferences domain.NotificationPreferences
+	Name      string
+	Username  string
+	Email     string
+	Password  string
+	AvatarURL string
+	Settings  domain.UserSettings
 }
 
 func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error {
@@ -138,16 +163,19 @@ func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUp
 		}
 	}
 
+	if input.Settings.Language != "" {
+		input.Settings.Language = domain.ParseLanguage(input.Settings.Language)
+	}
+
 	// TODO: sending confirmation email if email was updated
 
 	return s.repository.Update(ctx, id, repository.UserUpdateInput{
-		Name:                    input.Name,
-		Username:                input.Username,
-		Email:                   input.Email,
-		Password:                hashedPassword,
-		AvatarURL:               input.AvatarURL,
-		Location:                &input.Location,
-		NotificationPreferences: &input.NotificationPreferences,
+		Name:      input.Name,
+		Username:  input.Username,
+		Email:     input.Email,
+		Password:  hashedPassword,
+		AvatarURL: input.AvatarURL,
+		Settings:  &input.Settings,
 	})
 }
 

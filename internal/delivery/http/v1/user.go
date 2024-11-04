@@ -26,11 +26,13 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 }
 
 type userSignUpRequest struct {
-	Name     string          `json:"name"`
-	Username string          `json:"username"`
-	Email    string          `json:"email"`
-	Password string          `json:"password"`
-	Location domain.Location `json:"location"`
+	Name         string          `json:"name"`
+	Username     string          `json:"username"`
+	Email        string          `json:"email"`
+	Password     string          `json:"password"`
+	Location     domain.Location `json:"location"`
+	Language     domain.Language `json:"language"`
+	ReferrerCode string          `json:"referrer_code"`
 }
 
 type userSignUpResponse struct {
@@ -54,11 +56,13 @@ func (h *Handler) userSignUp(ctx *fiber.Ctx) error {
 	}
 
 	tokens, err := h.userService.SignUp(ctx.Context(), service.UserSignUpInput{
-		Name:     req.Name,
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
-		Location: req.Location,
+		Name:         req.Name,
+		Username:     req.Username,
+		Email:        req.Email,
+		Password:     req.Password,
+		Location:     req.Location,
+		Language:     req.Language,
+		ReferrerCode: req.ReferrerCode,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrUserAlreadyExists) {
@@ -208,13 +212,12 @@ func (h *Handler) userGetByID(ctx *fiber.Ctx) error {
 }
 
 type userUpdateRequest struct {
-	Name                    string                         `json:"name"`
-	Username                string                         `json:"username"`
-	Email                   string                         `json:"email"`
-	Password                string                         `json:"password"`
-	AvatarURL               string                         `json:"avatar_url"`
-	Location                domain.Location                `json:"location"`
-	NotificationPreferences domain.NotificationPreferences `json:"notification_preferences"`
+	Name      string              `json:"name"`
+	Username  string              `json:"username"`
+	Email     string              `json:"email"`
+	Password  string              `json:"password"`
+	AvatarURL string              `json:"avatar_url"`
+	Settings  domain.UserSettings `json:"settings"`
 }
 
 // @Summary		Update current user
@@ -228,24 +231,23 @@ type userUpdateRequest struct {
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/users [put]
 func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
-	ctxUser, err := h.getUserFromCtx(ctx)
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
-	}
-
 	var req userUpdateRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
 	}
 
+	ctxUser, err := h.getUserFromCtx(ctx)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
+	}
+
 	if err := h.userService.Update(ctx.Context(), ctxUser.ID, service.UserUpdateInput{
-		Name:                    req.Name,
-		Username:                req.Username,
-		Email:                   req.Email,
-		Password:                req.Password,
-		AvatarURL:               req.AvatarURL,
-		Location:                req.Location,
-		NotificationPreferences: req.NotificationPreferences,
+		Name:      req.Name,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  req.Password,
+		AvatarURL: req.AvatarURL,
+		Settings:  req.Settings,
 	}); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}

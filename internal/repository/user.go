@@ -15,6 +15,8 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
 	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (domain.User, error)
+	GetByReferralCode(ctx context.Context, referralCode string) (domain.User, error)
+	AddPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error
 	Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 	SetSession(ctx context.Context, id bson.ObjectID, session domain.Session) error
@@ -107,14 +109,44 @@ func (r *userRepository) GetByRefreshToken(ctx context.Context, refreshToken str
 	return user, nil
 }
 
+func (r *userRepository) GetByReferralCode(ctx context.Context, referralCode string) (domain.User, error) {
+	var user domain.User
+
+	err := r.db.Collection(domain.UserCollectionName).
+		FindOne(ctx, bson.M{"referral_code": referralCode}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+		return domain.User{}, err
+	}
+
+	return user, nil
+}
+
+func (r *userRepository) AddPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error {
+	user, err := r.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if user.Points+pointsAmount < 0 {
+		return domain.ErrUserInsufficientPoints
+	}
+
+	_, err = r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$inc": bson.M{"points": pointsAmount}})
+
+	return err
+}
+
 type UserUpdateInput struct {
-	Name                    string
-	Username                string
-	Email                   string
-	Password                string
-	AvatarURL               string
-	Location                *domain.Location
-	NotificationPreferences *domain.NotificationPreferences
+	Name      string
+	Username  string
+	Email     string
+	Password  string
+	AvatarURL string
+	Settings  *domain.UserSettings
 }
 
 func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error {
@@ -128,6 +160,7 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input Use
 	}
 	if input.Email != "" {
 		updateQuery["email"] = input.Email
+		updateQuery["is_confirmed"] = false
 	}
 	if input.Password != "" {
 		updateQuery["password"] = input.Password
@@ -135,11 +168,8 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input Use
 	if input.AvatarURL != "" {
 		updateQuery["avatar_url"] = input.AvatarURL
 	}
-	if input.Location != nil {
-		updateQuery["location"] = input.Location
-	}
-	if input.NotificationPreferences != nil {
-		updateQuery["notification_preferences"] = input.NotificationPreferences
+	if input.Settings != nil {
+		updateQuery["settings"] = input.Settings
 	}
 
 	updateQuery["updated_at"] = time.Now()
