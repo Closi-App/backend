@@ -1,16 +1,17 @@
 basePath: /api/v1/
 definitions:
+  domain.Language:
+    enum:
+    - en
+    - ru
+    type: string
+    x-enum-varnames:
+    - EnglishLanguage
+    - RussianLanguage
   domain.Location:
     properties:
       country:
         type: string
-    type: object
-  domain.NotificationPreferences:
-    properties:
-      email:
-        type: boolean
-      push:
-        type: boolean
     type: object
   domain.Question:
     properties:
@@ -66,22 +67,33 @@ definitions:
         type: array
       id:
         type: string
-      location:
-        $ref: '#/definitions/domain.Location'
+      is_confirmed:
+        type: boolean
       name:
         type: string
-      notification_preferences:
-        $ref: '#/definitions/domain.NotificationPreferences'
       password:
         type: string
       points:
         type: integer
+      referral_code:
+        type: string
+      settings:
+        $ref: '#/definitions/domain.UserSettings'
       subscription:
         $ref: '#/definitions/domain.Subscription'
       updated_at:
         type: string
       username:
         type: string
+    type: object
+  domain.UserSettings:
+    properties:
+      email_notifications:
+        type: boolean
+      language:
+        $ref: '#/definitions/domain.Language'
+      location:
+        $ref: '#/definitions/domain.Location'
     type: object
   v1.errorResponse:
     properties:
@@ -150,11 +162,15 @@ definitions:
     properties:
       email:
         type: string
+      language:
+        $ref: '#/definitions/domain.Language'
       location:
         $ref: '#/definitions/domain.Location'
       name:
         type: string
       password:
+        type: string
+      referrer_code:
         type: string
       username:
         type: string
@@ -172,14 +188,12 @@ definitions:
         type: string
       email:
         type: string
-      location:
-        $ref: '#/definitions/domain.Location'
       name:
         type: string
-      notification_preferences:
-        $ref: '#/definitions/domain.NotificationPreferences'
       password:
         type: string
+      settings:
+        $ref: '#/definitions/domain.UserSettings'
       username:
         type: string
     type: object

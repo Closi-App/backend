@@ -596,22 +596,22 @@
         }
     },
     "definitions": {
+        "domain.Language": {
+            "type": "string",
+            "enum": [
+                "en",
+                "ru"
+            ],
+            "x-enum-varnames": [
+                "EnglishLanguage",
+                "RussianLanguage"
+            ]
+        },
         "domain.Location": {
             "type": "object",
             "properties": {
                 "country": {
                     "type": "string"
-                }
-            }
-        },
-        "domain.NotificationPreferences": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "boolean"
-                },
-                "push": {
-                    "type": "boolean"
                 }
             }
         },
@@ -695,20 +695,23 @@
                 "id": {
                     "type": "string"
                 },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
+                "is_confirmed": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
-                },
-                "notification_preferences": {
-                    "$ref": "#/definitions/domain.NotificationPreferences"
                 },
                 "password": {
                     "type": "string"
                 },
                 "points": {
                     "type": "integer"
+                },
+                "referral_code": {
+                    "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/definitions/domain.UserSettings"
                 },
                 "subscription": {
                     "$ref": "#/definitions/domain.Subscription"
@@ -718,6 +721,20 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.UserSettings": {
+            "type": "object",
+            "properties": {
+                "email_notifications": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "$ref": "#/definitions/domain.Language"
+                },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
                 }
             }
         },
@@ -825,6 +842,9 @@
                 "email": {
                     "type": "string"
                 },
+                "language": {
+                    "$ref": "#/definitions/domain.Language"
+                },
                 "location": {
                     "$ref": "#/definitions/domain.Location"
                 },
@@ -832,6 +852,9 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "referrer_code": {
                     "type": "string"
                 },
                 "username": {
@@ -859,17 +882,14 @@
                 "email": {
                     "type": "string"
                 },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
-                },
                 "name": {
                     "type": "string"
                 },
-                "notification_preferences": {
-                    "$ref": "#/definitions/domain.NotificationPreferences"
-                },
                 "password": {
                     "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/definitions/domain.UserSettings"
                 },
                 "username": {
                     "type": "string"

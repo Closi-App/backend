@@ -602,22 +602,22 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.Language": {
+            "type": "string",
+            "enum": [
+                "en",
+                "ru"
+            ],
+            "x-enum-varnames": [
+                "EnglishLanguage",
+                "RussianLanguage"
+            ]
+        },
         "domain.Location": {
             "type": "object",
             "properties": {
                 "country": {
                     "type": "string"
-                }
-            }
-        },
-        "domain.NotificationPreferences": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "boolean"
-                },
-                "push": {
-                    "type": "boolean"
                 }
             }
         },
@@ -701,20 +701,23 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
+                "is_confirmed": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
-                },
-                "notification_preferences": {
-                    "$ref": "#/definitions/domain.NotificationPreferences"
                 },
                 "password": {
                     "type": "string"
                 },
                 "points": {
                     "type": "integer"
+                },
+                "referral_code": {
+                    "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/definitions/domain.UserSettings"
                 },
                 "subscription": {
                     "$ref": "#/definitions/domain.Subscription"
@@ -724,6 +727,20 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.UserSettings": {
+            "type": "object",
+            "properties": {
+                "email_notifications": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "$ref": "#/definitions/domain.Language"
+                },
+                "location": {
+                    "$ref": "#/definitions/domain.Location"
                 }
             }
         },
@@ -831,6 +848,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "language": {
+                    "$ref": "#/definitions/domain.Language"
+                },
                 "location": {
                     "$ref": "#/definitions/domain.Location"
                 },
@@ -838,6 +858,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "referrer_code": {
                     "type": "string"
                 },
                 "username": {
@@ -865,17 +888,14 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
-                },
                 "name": {
                     "type": "string"
                 },
-                "notification_preferences": {
-                    "$ref": "#/definitions/domain.NotificationPreferences"
-                },
                 "password": {
                     "type": "string"
+                },
+                "settings": {
+                    "$ref": "#/definitions/domain.UserSettings"
                 },
                 "username": {
                     "type": "string"
