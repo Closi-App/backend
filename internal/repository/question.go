@@ -11,7 +11,7 @@ import (
 
 type QuestionRepository interface {
 	Create(ctx context.Context, question domain.Question) error
-	GetAll(ctx context.Context) ([]domain.Question, error)
+	Get(ctx context.Context) ([]domain.Question, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.Question, error)
 	GetByLocation(ctx context.Context, location domain.Location) ([]domain.Question, error)
 	Update(ctx context.Context, id, userID bson.ObjectID, input QuestionUpdateInput) error
@@ -38,7 +38,7 @@ func (r *questionRepository) Create(ctx context.Context, question domain.Questio
 	return nil
 }
 
-func (r *questionRepository) GetAll(ctx context.Context) ([]domain.Question, error) {
+func (r *questionRepository) Get(ctx context.Context) ([]domain.Question, error) {
 	cursor, err := r.db.Collection(domain.QuestionCollectionName).
 		Find(ctx, bson.M{})
 	if err != nil {

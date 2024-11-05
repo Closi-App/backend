@@ -10,7 +10,7 @@ import (
 
 type QuestionService interface {
 	Create(ctx context.Context, input QuestionCreateInput) (string, error)
-	GetAll(ctx context.Context) ([]domain.Question, error)
+	Get(ctx context.Context) ([]domain.Question, error)
 	GetByLocation(ctx context.Context, location domain.Location) ([]domain.Question, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.Question, error)
 	Update(ctx context.Context, id, userID bson.ObjectID, input QuestionUpdateInput) error
@@ -58,8 +58,8 @@ func (s *questionService) Create(ctx context.Context, input QuestionCreateInput)
 	return id.Hex(), nil
 }
 
-func (s *questionService) GetAll(ctx context.Context) ([]domain.Question, error) {
-	return s.repository.GetAll(ctx)
+func (s *questionService) Get(ctx context.Context) ([]domain.Question, error) {
+	return s.repository.Get(ctx)
 }
 
 func (s *questionService) GetByLocation(ctx context.Context, location domain.Location) ([]domain.Question, error) {

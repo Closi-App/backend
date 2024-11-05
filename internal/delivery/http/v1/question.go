@@ -77,7 +77,7 @@ func (h *Handler) questionCreate(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	errorResponse
 // @Router			/questions [get]
 func (h *Handler) questionGet(ctx *fiber.Ctx) error {
-	questions, err := h.questionService.GetAll(ctx.Context())
+	questions, err := h.questionService.Get(ctx.Context())
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
