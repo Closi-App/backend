@@ -4,10 +4,13 @@ import "time"
 
 type SubscriptionType string
 
+// TODO: storing subscriptions in db
+
 const (
-	FreeSubscription    SubscriptionType = "free"
-	MonthlySubscription SubscriptionType = "monthly"
-	AnnualSubscription  SubscriptionType = "annual"
+	FreeSubscription      SubscriptionType = "free"
+	MonthlySubscription   SubscriptionType = "monthly"
+	QuarterlySubscription SubscriptionType = "quarterly"
+	AnnualSubscription    SubscriptionType = "annual"
 )
 
 type Subscription struct {
@@ -25,6 +28,8 @@ func NewSubscription(subscriptionType SubscriptionType) Subscription {
 		subscription.ExpiresAt = time.Time{}
 	case MonthlySubscription:
 		subscription.ExpiresAt = time.Now().AddDate(0, 1, 0)
+	case QuarterlySubscription:
+		subscription.ExpiresAt = time.Now().AddDate(0, 3, 0)
 	case AnnualSubscription:
 		subscription.ExpiresAt = time.Now().AddDate(1, 0, 0)
 	}
