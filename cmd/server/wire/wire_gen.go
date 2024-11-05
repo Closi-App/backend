@@ -14,6 +14,7 @@ import (
 	"github.com/Closi-App/backend/internal/service"
 	"github.com/Closi-App/backend/pkg/auth"
 	"github.com/Closi-App/backend/pkg/database/mongo"
+	"github.com/Closi-App/backend/pkg/database/redis"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
@@ -24,7 +25,8 @@ import (
 func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, func(), error) {
 	serviceService := service.NewService(loggerLogger)
 	database := mongo.NewMongo(viperViper)
-	repositoryRepository := repository.NewRepository(loggerLogger, database)
+	client := redis.NewRedis(viperViper)
+	repositoryRepository := repository.NewRepository(loggerLogger, database, client)
 	userRepository := repository.NewUserRepository(repositoryRepository)
 	passwordHasher := auth.NewPasswordHasher(viperViper)
 	tokensManager := auth.NewTokensManager(viperViper)
@@ -40,7 +42,7 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 
 // wire.go:
 
-var pkgSet = wire.NewSet(mongo.NewMongo, auth.NewTokensManager, auth.NewPasswordHasher)
+var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, auth.NewTokensManager, auth.NewPasswordHasher)
 
 var repositorySet = wire.NewSet(repository.NewRepository, repository.NewUserRepository, repository.NewQuestionRepository)
 

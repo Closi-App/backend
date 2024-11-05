@@ -127,12 +127,12 @@ func (s *userService) SignIn(ctx context.Context, input UserSignInInput) (Tokens
 }
 
 func (s *userService) RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error) {
-	user, err := s.repository.GetByRefreshToken(ctx, refreshToken)
+	userID, err := s.repository.GetSessionUserID(ctx, refreshToken)
 	if err != nil {
-		return Tokens{}, err
+		return Tokens{}, domain.ErrUnauthorized
 	}
 
-	return s.createSession(ctx, user.ID)
+	return s.createSession(ctx, userID)
 }
 
 // TODO: user confirmation
@@ -204,12 +204,7 @@ func (s *userService) createSession(ctx context.Context, id bson.ObjectID) (Toke
 		return tokens, err
 	}
 
-	session := domain.Session{
-		RefreshToken: tokens.RefreshToken,
-		ExpiresAt:    time.Now().Add(s.refreshTokenTTL),
-	}
-
-	err = s.repository.SetSession(ctx, id, session)
+	err = s.repository.CreateSession(ctx, tokens.RefreshToken, id, s.refreshTokenTTL)
 
 	return tokens, err
 }

@@ -135,7 +135,7 @@ type userRefreshResponse struct {
 // @Produce		json
 // @Param			userRefreshRequest	body		userRefreshRequest	true	"Request"
 // @Success		200					{object}	userRefreshResponse
-// @Failure		400,500				{object}	errorResponse
+// @Failure		400,401,500			{object}	errorResponse
 // @Router			/users/refresh [post]
 func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
 	var req userRefreshRequest
@@ -145,8 +145,8 @@ func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
 
 	tokens, err := h.userService.RefreshTokens(ctx.Context(), req.Token)
 	if err != nil {
-		if errors.Is(err, domain.ErrUserNotFound) {
-			return h.newResponse(ctx, fiber.StatusBadRequest, err)
+		if errors.Is(err, domain.ErrUnauthorized) {
+			return h.newResponse(ctx, fiber.StatusUnauthorized, err)
 		}
 
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)

@@ -11,6 +11,7 @@ import (
 	"github.com/Closi-App/backend/internal/service"
 	"github.com/Closi-App/backend/pkg/auth"
 	"github.com/Closi-App/backend/pkg/database/mongo"
+	"github.com/Closi-App/backend/pkg/database/redis"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ import (
 
 var pkgSet = wire.NewSet(
 	mongo.NewMongo,
+	redis.NewRedis,
 	auth.NewTokensManager,
 	auth.NewPasswordHasher,
 )
