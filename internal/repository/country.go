@@ -12,6 +12,7 @@ type CountryRepository interface {
 	Create(ctx context.Context, country domain.Country) error
 	Get(ctx context.Context) ([]domain.Country, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.Country, error)
+	Delete(ctx context.Context, id bson.ObjectID) error
 }
 
 type countryRepository struct {
@@ -56,8 +57,16 @@ func (r *countryRepository) GetByID(ctx context.Context, id bson.ObjectID) (doma
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.Country{}, domain.ErrCountryNotFound
 		}
+
 		return domain.Country{}, err
 	}
 
 	return country, nil
+}
+
+func (r *countryRepository) Delete(ctx context.Context, id bson.ObjectID) error {
+	_, err := r.db.Collection(domain.CountryCollectionName).
+		DeleteOne(ctx, bson.M{"_id": id})
+
+	return err
 }

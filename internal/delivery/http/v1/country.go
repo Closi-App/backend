@@ -10,26 +10,23 @@ import (
 func (h *Handler) initCountryRoutes(router fiber.Router) {
 	countries := router.Group("/countries")
 	{
-		countries.Get("/", h.countryGet)
+		countries.Get("/", h.countryGetAll)
 		countries.Get("/:id", h.countryGetByID)
 
-		//auth := countries.Group("") TODO: admins middleware
-		//{
-		//	auth.Post("/", h.countryCreate)
-		//}
+		// TODO: create, delete functions for admins
 	}
 }
 
-// @Summary		Get all
-// @Description	Get all countries
+// @Summary		GetAll all
+// @Description	GetAll all countries
 // @Tags		countries
 // @Accept		json
 // @Produce		json
 // @Success		200	{array}	domain.Country
 // @Failure		500	{object} errorResponse
 // @Router		/countries [get]
-func (h *Handler) countryGet(ctx *fiber.Ctx) error {
-	countries, err := h.countryService.Get(ctx.Context())
+func (h *Handler) countryGetAll(ctx *fiber.Ctx) error {
+	countries, err := h.countryService.GetAll(ctx.Context())
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
@@ -37,8 +34,8 @@ func (h *Handler) countryGet(ctx *fiber.Ctx) error {
 	return h.newResponse(ctx, fiber.StatusOK, countries)
 }
 
-// @Summary		Get by ID
-// @Description	Get country by ID
+// @Summary		GetAll by ID
+// @Description	GetAll country by ID
 // @Tags		countries
 // @Accept		json
 // @Produce		json
@@ -63,23 +60,3 @@ func (h *Handler) countryGetByID(ctx *fiber.Ctx) error {
 
 	return h.newResponse(ctx, fiber.StatusOK, country)
 }
-
-//type countryCreateRequest struct {
-//	Name map[domain.Language]string `json:"name"`
-//}
-//
-//func (h *Handler) countryCreate(ctx *fiber.Ctx) error {
-//	var req countryCreateRequest
-//	if err := ctx.BodyParser(&req); err != nil {
-//		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
-//	}
-//
-//	id, err := h.countryService.Create(ctx.Context(), service.CountryCreateInput{
-//		Name: req.Name,
-//	})
-//	if err != nil {
-//		return h.newResponse(ctx, fiber.StatusInternalServerError, domain.ErrInternalServerError)
-//	}
-//
-//	return h.newResponse(ctx, fiber.StatusCreated, idResponse{id.Hex()})
-//}

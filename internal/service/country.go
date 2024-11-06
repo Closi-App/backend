@@ -9,8 +9,9 @@ import (
 
 type CountryService interface {
 	Create(ctx context.Context, input CountryCreateInput) (bson.ObjectID, error)
-	Get(ctx context.Context) ([]domain.Country, error)
+	GetAll(ctx context.Context) ([]domain.Country, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.Country, error)
+	Delete(ctx context.Context, id bson.ObjectID) error
 }
 
 type countryService struct {
@@ -42,10 +43,14 @@ func (s *countryService) Create(ctx context.Context, input CountryCreateInput) (
 	return id, nil
 }
 
-func (s *countryService) Get(ctx context.Context) ([]domain.Country, error) {
+func (s *countryService) GetAll(ctx context.Context) ([]domain.Country, error) {
 	return s.repository.Get(ctx)
 }
 
 func (s *countryService) GetByID(ctx context.Context, id bson.ObjectID) (domain.Country, error) {
 	return s.repository.GetByID(ctx, id)
+}
+
+func (s *countryService) Delete(ctx context.Context, id bson.ObjectID) error {
+	return s.repository.Delete(ctx, id)
 }
