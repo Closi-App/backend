@@ -18,12 +18,21 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
 	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error)
 	GetByReferralCode(ctx context.Context, referralCode string) (domain.User, error)
-	AddPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error
-	Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error
+	Update(ctx context.Context, id bson.ObjectID, input domain.UserUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 
+	AdjustPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error
+	AddFavorite(ctx context.Context, id, questionID bson.ObjectID) error
+	RemoveFavorite(ctx context.Context, id, questionID bson.ObjectID) error
+	AddAchievement(ctx context.Context, id, achievementID bson.ObjectID) error
+	RemoveAchievement(ctx context.Context, id, achievementID bson.ObjectID) error
+	SetSubscription(ctx context.Context, id bson.ObjectID, subscription domain.Subscription) error
+	Confirm(ctx context.Context, id bson.ObjectID) error
+	Block(ctx context.Context, id bson.ObjectID) error
+	Unblock(ctx context.Context, id bson.ObjectID) error
+
 	CreateSession(ctx context.Context, refreshToken string, userID bson.ObjectID, expiration time.Duration) error
-	GetSessionUserID(ctx context.Context, refreshToken string) (bson.ObjectID, error)
+	GetSession(ctx context.Context, refreshToken string) (userID bson.ObjectID, err error)
 }
 
 type userRepository struct {
@@ -111,58 +120,45 @@ func (r *userRepository) GetByReferralCode(ctx context.Context, referralCode str
 	return user, nil
 }
 
-func (r *userRepository) AddPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error {
-	user, err := r.GetByID(ctx, id)
-	if err != nil {
-		return err
+func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input domain.UserUpdateInput) error {
+	updateFields := bson.M{}
+
+	if input.Name != nil {
+		updateFields["name"] = input.Name
+	}
+	if input.Username != nil {
+		updateFields["username"] = input.Username
+	}
+	if input.Email != nil {
+		updateFields["email"] = input.Email
+		updateFields["is_confirmed"] = false
+	}
+	if input.Password != nil {
+		updateFields["password"] = input.Password
+	}
+	if input.AvatarURL != nil {
+		updateFields["avatar_url"] = input.AvatarURL
+	}
+	if input.SocialLinks != nil {
+		updateFields["social_links"] = input.SocialLinks
+	}
+	if input.CountryID != nil {
+		updateFields["settings.country_id"] = input.CountryID
+	}
+	if input.Language != nil {
+		updateFields["settings.language"] = input.Language
+	}
+	if input.Appearance != nil {
+		updateFields["settings.appearance"] = input.Appearance
+	}
+	if input.EmailNotifications != nil {
+		updateFields["settings.email_notifications"] = input.EmailNotifications
 	}
 
-	if user.Points+pointsAmount < 0 {
-		return domain.ErrUserInsufficientPoints
-	}
-
-	_, err = r.db.Collection(domain.UserCollectionName).
-		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$inc": bson.M{"points": pointsAmount}})
-
-	return err
-}
-
-type UserUpdateInput struct {
-	Name      string
-	Username  string
-	Email     string
-	Password  string
-	AvatarURL string
-	Settings  *domain.UserSettings
-}
-
-func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error {
-	updateQuery := bson.M{}
-
-	if input.Name != "" {
-		updateQuery["name"] = input.Name
-	}
-	if input.Username != "" {
-		updateQuery["username"] = input.Username
-	}
-	if input.Email != "" {
-		updateQuery["email"] = input.Email
-		updateQuery["is_confirmed"] = false
-	}
-	if input.Password != "" {
-		updateQuery["password"] = input.Password
-	}
-	if input.AvatarURL != "" {
-		updateQuery["avatar_url"] = input.AvatarURL
-	}
-	if input.Settings != nil {
-		updateQuery["settings"] = input.Settings
-	}
-
-	updateQuery["updated_at"] = time.Now()
+	updateFields["updated_at"] = time.Now()
 
 	_, err := r.db.Collection(domain.UserCollectionName).
-		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updateQuery})
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updateFields})
 
 	return err
 }
@@ -174,6 +170,69 @@ func (r *userRepository) Delete(ctx context.Context, id bson.ObjectID) error {
 	return err
 }
 
+func (r *userRepository) AdjustPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$inc": bson.M{"points": pointsAmount}})
+
+	return err
+}
+
+func (r *userRepository) AddFavorite(ctx context.Context, id, questionID bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$addToSet": bson.M{"favorites": questionID}})
+
+	return err
+}
+
+func (r *userRepository) RemoveFavorite(ctx context.Context, id, questionID bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$pull": bson.M{"favorites": questionID}})
+
+	return err
+}
+
+func (r *userRepository) AddAchievement(ctx context.Context, id, achievementID bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$addToSet": bson.M{"achievements": achievementID}})
+
+	return err
+}
+
+func (r *userRepository) RemoveAchievement(ctx context.Context, id, achievementID bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$pull": bson.M{"achievements": achievementID}})
+
+	return err
+}
+
+func (r *userRepository) SetSubscription(ctx context.Context, id bson.ObjectID, subscription domain.Subscription) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"subscription": subscription}})
+
+	return err
+}
+
+func (r *userRepository) Confirm(ctx context.Context, id bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"is_confirmed": true}})
+
+	return err
+}
+
+func (r *userRepository) Block(ctx context.Context, id bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"is_blocked": true}})
+
+	return err
+}
+
+func (r *userRepository) Unblock(ctx context.Context, id bson.ObjectID) error {
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"is_blocked": false}})
+
+	return err
+}
+
 func (r *userRepository) CreateSession(ctx context.Context, refreshToken string, userID bson.ObjectID, expiration time.Duration) error {
 	key := fmt.Sprintf(dbSessionKeyFormat, refreshToken)
 	value := userID.Hex()
@@ -181,7 +240,7 @@ func (r *userRepository) CreateSession(ctx context.Context, refreshToken string,
 	return r.rdb.Set(ctx, key, value, expiration).Err()
 }
 
-func (r *userRepository) GetSessionUserID(ctx context.Context, refreshToken string) (bson.ObjectID, error) {
+func (r *userRepository) GetSession(ctx context.Context, refreshToken string) (bson.ObjectID, error) {
 	key := fmt.Sprintf(dbSessionKeyFormat, refreshToken)
 
 	value, err := r.rdb.Get(ctx, key).Result()

@@ -9,6 +9,7 @@ import (
 
 type Handler struct {
 	log             *logger.Logger
+	countryService  service.CountryService
 	userService     service.UserService
 	questionService service.QuestionService
 	tokensManager   auth.TokensManager
@@ -16,12 +17,14 @@ type Handler struct {
 
 func NewHandler(
 	log *logger.Logger,
+	countryService service.CountryService,
 	userService service.UserService,
 	questionService service.QuestionService,
 	tokensManager auth.TokensManager,
 ) *Handler {
 	return &Handler{
 		log:             log,
+		countryService:  countryService,
 		userService:     userService,
 		questionService: questionService,
 		tokensManager:   tokensManager,

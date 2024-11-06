@@ -13,10 +13,21 @@ import (
 type UserService interface {
 	SignUp(ctx context.Context, input UserSignUpInput) (Tokens, error)
 	SignIn(ctx context.Context, input UserSignInInput) (Tokens, error)
-	RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
-	Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error
+	Update(ctx context.Context, id bson.ObjectID, input domain.UserUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
+
+	AdjustPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error
+	AddFavorite(ctx context.Context, id, questionID bson.ObjectID) error
+	RemoveFavorite(ctx context.Context, id, questionID bson.ObjectID) error
+	AddAchievement(ctx context.Context, id, achievementID bson.ObjectID) error
+	RemoveAchievement(ctx context.Context, id, achievementID bson.ObjectID) error
+	SetSubscription(ctx context.Context, id bson.ObjectID, subscription domain.Subscription) error
+	Confirm(ctx context.Context, id bson.ObjectID) error
+	Block(ctx context.Context, id bson.ObjectID) error
+	Unblock(ctx context.Context, id bson.ObjectID) error
+
+	RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error)
 }
 
 type userService struct {
@@ -48,7 +59,7 @@ type UserSignUpInput struct {
 	Username     string
 	Email        string
 	Password     string
-	Location     domain.Location
+	CountryID    bson.ObjectID
 	Language     domain.Language
 	ReferrerCode string
 }
@@ -66,8 +77,6 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		return Tokens{}, err
 	}
 
-	input.Language = domain.ParseLanguage(input.Language)
-
 	if err := s.repository.Create(ctx, domain.User{
 		ID:           id,
 		Name:         input.Name,
@@ -77,14 +86,18 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		AvatarURL:    "",
 		Points:       domain.UserDefaultPoints,
 		Favorites:    nil,
+		Achievements: nil,
+		SocialLinks:  nil,
 		ReferralCode: referralCode,
 		Subscription: domain.NewSubscription(domain.FreeSubscription),
 		Settings: domain.UserSettings{
-			Location:           input.Location,
+			CountryID:          input.CountryID,
 			Language:           input.Language,
 			EmailNotifications: true,
+			Appearance:         domain.LightAppearance,
 		},
 		IsConfirmed: false,
+		IsBlocked:   false,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}); err != nil {
@@ -94,16 +107,16 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 	if input.ReferrerCode != "" {
 		referrer, err := s.repository.GetByReferralCode(ctx, input.ReferrerCode)
 		if err == nil {
-			if err := s.repository.AddPoints(ctx, referrer.ID, domain.UserReferralPoints); err != nil {
+			if err := s.repository.AdjustPoints(ctx, referrer.ID, domain.UserReferralPoints); err != nil {
 				return Tokens{}, err
 			}
-			if err := s.repository.AddPoints(ctx, id, domain.UserReferralPoints); err != nil {
+			if err := s.repository.AdjustPoints(ctx, id, domain.UserReferralPoints); err != nil {
 				return Tokens{}, err
 			}
 		}
 	}
 
-	// TODO: sending confirmation email
+	// TODO: sending confirmation email with confirmation link
 
 	return s.createSession(ctx, id)
 }
@@ -126,61 +139,72 @@ func (s *userService) SignIn(ctx context.Context, input UserSignInInput) (Tokens
 	return s.createSession(ctx, user.ID)
 }
 
+func (s *userService) GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error) {
+	return s.repository.GetByID(ctx, id)
+}
+
+func (s *userService) Update(ctx context.Context, id bson.ObjectID, input domain.UserUpdateInput) error {
+	if input.Password != nil {
+		hashedPassword, err := s.passwordHasher.Hash(*input.Password)
+		if err != nil {
+			return err
+		}
+
+		input.Password = &hashedPassword
+	}
+
+	// TODO: sending confirmation email with confirmation link if email was updated
+
+	return s.repository.Update(ctx, id, input)
+}
+
+func (s *userService) Delete(ctx context.Context, id bson.ObjectID) error {
+	return s.repository.Delete(ctx, id)
+}
+
+func (s *userService) AdjustPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error {
+	return s.repository.AdjustPoints(ctx, id, pointsAmount)
+}
+
+func (s *userService) AddFavorite(ctx context.Context, id, questionID bson.ObjectID) error {
+	return s.repository.AddFavorite(ctx, id, questionID)
+}
+
+func (s *userService) RemoveFavorite(ctx context.Context, id, questionID bson.ObjectID) error {
+	return s.repository.RemoveFavorite(ctx, id, questionID)
+}
+
+func (s *userService) AddAchievement(ctx context.Context, id, achievementID bson.ObjectID) error {
+	return s.repository.AddAchievement(ctx, id, achievementID)
+}
+
+func (s *userService) RemoveAchievement(ctx context.Context, id, achievementID bson.ObjectID) error {
+	return s.repository.RemoveAchievement(ctx, id, achievementID)
+}
+
+func (s *userService) SetSubscription(ctx context.Context, id bson.ObjectID, subscription domain.Subscription) error {
+	return s.repository.SetSubscription(ctx, id, subscription)
+}
+
+func (s *userService) Confirm(ctx context.Context, id bson.ObjectID) error {
+	return s.repository.Confirm(ctx, id)
+}
+
+func (s *userService) Block(ctx context.Context, id bson.ObjectID) error {
+	return s.repository.Block(ctx, id)
+}
+
+func (s *userService) Unblock(ctx context.Context, id bson.ObjectID) error {
+	return s.repository.Unblock(ctx, id)
+}
+
 func (s *userService) RefreshTokens(ctx context.Context, refreshToken string) (Tokens, error) {
-	userID, err := s.repository.GetSessionUserID(ctx, refreshToken)
+	userID, err := s.repository.GetSession(ctx, refreshToken)
 	if err != nil {
 		return Tokens{}, domain.ErrUnauthorized
 	}
 
 	return s.createSession(ctx, userID)
-}
-
-// TODO: user confirmation
-
-func (s *userService) GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error) {
-	return s.repository.GetByID(ctx, id)
-}
-
-type UserUpdateInput struct {
-	Name      string
-	Username  string
-	Email     string
-	Password  string
-	AvatarURL string
-	Settings  domain.UserSettings
-}
-
-func (s *userService) Update(ctx context.Context, id bson.ObjectID, input UserUpdateInput) error {
-	var (
-		hashedPassword string
-		err            error
-	)
-
-	if input.Password != "" {
-		hashedPassword, err = s.passwordHasher.Hash(input.Password)
-		if err != nil {
-			return err
-		}
-	}
-
-	if input.Settings.Language != "" {
-		input.Settings.Language = domain.ParseLanguage(input.Settings.Language)
-	}
-
-	// TODO: sending confirmation email if email was updated
-
-	return s.repository.Update(ctx, id, repository.UserUpdateInput{
-		Name:      input.Name,
-		Username:  input.Username,
-		Email:     input.Email,
-		Password:  hashedPassword,
-		AvatarURL: input.AvatarURL,
-		Settings:  &input.Settings,
-	})
-}
-
-func (s *userService) Delete(ctx context.Context, id bson.ObjectID) error {
-	return s.repository.Delete(ctx, id)
 }
 
 type Tokens struct {

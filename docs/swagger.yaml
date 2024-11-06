@@ -1,5 +1,22 @@
 basePath: /api/v1/
 definitions:
+  domain.Appearance:
+    enum:
+    - dark
+    - light
+    type: string
+    x-enum-varnames:
+    - DarkAppearance
+    - LightAppearance
+  domain.Country:
+    properties:
+      id:
+        type: string
+      name:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
   domain.Language:
     enum:
     - en
@@ -8,25 +25,20 @@ definitions:
     x-enum-varnames:
     - EnglishLanguage
     - RussianLanguage
-  domain.Location:
-    properties:
-      country:
-        type: string
-    type: object
   domain.Question:
     properties:
       attachments:
         items:
           type: string
         type: array
+      country_id:
+        type: string
       created_at:
         type: string
       description:
         type: string
       id:
         type: string
-      location:
-        $ref: '#/definitions/domain.Location'
       points:
         type: integer
       title:
@@ -47,14 +59,20 @@ definitions:
     enum:
     - free
     - monthly
+    - quarterly
     - annual
     type: string
     x-enum-varnames:
     - FreeSubscription
     - MonthlySubscription
+    - QuarterlySubscription
     - AnnualSubscription
   domain.User:
     properties:
+      achievements:
+        items:
+          type: string
+        type: array
       avatar_url:
         type: string
       created_at:
@@ -67,6 +85,8 @@ definitions:
         type: array
       id:
         type: string
+      is_blocked:
+        type: boolean
       is_confirmed:
         type: boolean
       name:
@@ -79,6 +99,10 @@ definitions:
         type: string
       settings:
         $ref: '#/definitions/domain.UserSettings'
+      social_links:
+        items:
+          type: string
+        type: array
       subscription:
         $ref: '#/definitions/domain.Subscription'
       updated_at:
@@ -88,12 +112,14 @@ definitions:
     type: object
   domain.UserSettings:
     properties:
+      appearance:
+        $ref: '#/definitions/domain.Appearance'
+      country_id:
+        type: string
       email_notifications:
         type: boolean
       language:
         $ref: '#/definitions/domain.Language'
-      location:
-        $ref: '#/definitions/domain.Location'
     type: object
   v1.errorResponse:
     properties:
@@ -110,27 +136,12 @@ definitions:
         type: array
       description:
         type: string
-      location:
-        $ref: '#/definitions/domain.Location'
       points:
         type: integer
       title:
         type: string
     type: object
   v1.questionUpdateRequest:
-    properties:
-      attachments:
-        items:
-          type: string
-        type: array
-      description:
-        type: string
-      location:
-        $ref: '#/definitions/domain.Location'
-      points:
-        type: integer
-      title:
-        type: string
     type: object
   v1.userRefreshRequest:
     properties:
@@ -160,12 +171,12 @@ definitions:
     type: object
   v1.userSignUpRequest:
     properties:
+      country_id:
+        type: string
       email:
         type: string
       language:
-        $ref: '#/definitions/domain.Language'
-      location:
-        $ref: '#/definitions/domain.Location'
+        type: string
       name:
         type: string
       password:
@@ -184,16 +195,26 @@ definitions:
     type: object
   v1.userUpdateRequest:
     properties:
-      avatar_url:
+      appearance:
+        type: string
+      avatarURL:
+        type: string
+      countryID:
         type: string
       email:
+        type: string
+      emailNotifications:
+        type: boolean
+      language:
         type: string
       name:
         type: string
       password:
         type: string
-      settings:
-        $ref: '#/definitions/domain.UserSettings'
+      socialLinks:
+        items:
+          type: string
+        type: array
       username:
         type: string
     type: object
@@ -204,6 +225,60 @@ info:
   title: Closi API
   version: "1.0"
 paths:
+  /countries:
+    get:
+      consumes:
+      - application/json
+      description: Get all countries
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Country'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get all
+      tags:
+      - countries
+  /countries/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get country by ID
+      parameters:
+      - description: Country ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Country'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get by ID
+      tags:
+      - countries
   /questions:
     get:
       consumes:
@@ -222,7 +297,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Get all questions
+      summary: GetAll all questions
       tags:
       - questions
     post:
@@ -324,7 +399,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Get question by ID
+      summary: GetAll question by ID
       tags:
       - questions
     put:
@@ -371,7 +446,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete the authenticated user's account
+      description: Delete auth user
       produces:
       - application/json
       responses:
@@ -389,13 +464,13 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Delete current user
+      summary: Delete
       tags:
       - users
     get:
       consumes:
       - application/json
-      description: Retrieve the currently authenticated user's information
+      description: Get auth user
       produces:
       - application/json
       responses:
@@ -417,13 +492,13 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Get current user
+      summary: Get
       tags:
       - users
     put:
       consumes:
       - application/json
-      description: Update the authenticated user's information
+      description: Update auth user
       parameters:
       - description: Request
         in: body
@@ -452,14 +527,14 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Update current user
+      summary: Update
       tags:
       - users
   /users/{id}:
     get:
       consumes:
       - application/json
-      description: Retrieve a user's information by their ID
+      description: Get user by ID
       parameters:
       - description: User ID
         in: path
@@ -485,14 +560,182 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: Get user by ID
+      summary: Get by ID
+      tags:
+      - users
+  /users/{id}/confirm:
+    get:
+      consumes:
+      - application/json
+      description: Confirm user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Confirm by ID
+      tags:
+      - users
+  /users/achievements/{achievementID}:
+    post:
+      consumes:
+      - application/json
+      description: Add achievement for auth user
+      parameters:
+      - description: Achievement ID
+        in: path
+        name: achievementID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Add achievement
+      tags:
+      - users
+  /users/favorites/{questionID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove favorite from auth user
+      parameters:
+      - description: Question ID
+        in: path
+        name: questionID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Remove favorite
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Add favorite for auth user
+      parameters:
+      - description: Question ID
+        in: path
+        name: questionID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Add favorite
+      tags:
+      - users
+  /users/points:
+    put:
+      consumes:
+      - application/json
+      description: Adjust auth user points
+      parameters:
+      - description: Points amount
+        in: query
+        name: pointsAmount
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Adjust points
       tags:
       - users
   /users/refresh:
     post:
       consumes:
       - application/json
-      description: Refresh the user's access and refresh tokens
+      description: Refresh user's tokens
       parameters:
       - description: Request
         in: body
@@ -526,7 +769,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user and retrieve tokens
+      description: Sign in
       parameters:
       - description: Request
         in: body
@@ -556,7 +799,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new user account
+      description: Sign up
       parameters:
       - description: Request
         in: body

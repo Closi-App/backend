@@ -15,6 +15,88 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/countries": {
+            "get": {
+                "description": "Get all countries",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "countries"
+                ],
+                "summary": "Get all",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Country"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/countries/{id}": {
+            "get": {
+                "description": "Get country by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "countries"
+                ],
+                "summary": "Get by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Country ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Country"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/questions": {
             "get": {
                 "description": "Retrieve a list of all questions",
@@ -27,7 +109,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "Get all questions",
+                "summary": "GetAll all questions",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -114,7 +196,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "Get question by ID",
+                "summary": "GetAll question by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -274,7 +356,7 @@ const docTemplate = `{
                         "UserAuth": []
                     }
                 ],
-                "description": "Retrieve the currently authenticated user's information",
+                "description": "Get auth user",
                 "consumes": [
                     "application/json"
                 ],
@@ -284,7 +366,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Get current user",
+                "summary": "Get",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -318,7 +400,7 @@ const docTemplate = `{
                         "UserAuth": []
                     }
                 ],
-                "description": "Update the authenticated user's information",
+                "description": "Update auth user",
                 "consumes": [
                     "application/json"
                 ],
@@ -328,7 +410,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Update current user",
+                "summary": "Update",
                 "parameters": [
                     {
                         "description": "Request",
@@ -373,7 +455,7 @@ const docTemplate = `{
                         "UserAuth": []
                     }
                 ],
-                "description": "Delete the authenticated user's account",
+                "description": "Delete auth user",
                 "consumes": [
                     "application/json"
                 ],
@@ -383,7 +465,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Delete current user",
+                "summary": "Delete",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -406,9 +488,227 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/achievements/{achievementID}": {
+            "post": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Add achievement for auth user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Add achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Achievement ID",
+                        "name": "achievementID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/favorites/{questionID}": {
+            "post": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Add favorite for auth user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Add favorite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "questionID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Remove favorite from auth user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Remove favorite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "questionID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/points": {
+            "put": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "Adjust auth user points",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Adjust points",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Points amount",
+                        "name": "pointsAmount",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/refresh": {
             "post": {
-                "description": "Refresh the user's access and refresh tokens",
+                "description": "Refresh user's tokens",
                 "consumes": [
                     "application/json"
                 ],
@@ -460,7 +760,7 @@ const docTemplate = `{
         },
         "/users/sign-in": {
             "post": {
-                "description": "Authenticate a user and retrieve tokens",
+                "description": "Sign in",
                 "consumes": [
                     "application/json"
                 ],
@@ -506,7 +806,7 @@ const docTemplate = `{
         },
         "/users/sign-up": {
             "post": {
-                "description": "Create a new user account",
+                "description": "Sign up",
                 "consumes": [
                     "application/json"
                 ],
@@ -558,7 +858,7 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
-                "description": "Retrieve a user's information by their ID",
+                "description": "Get user by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -568,7 +868,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Get user by ID",
+                "summary": "Get by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -605,9 +905,78 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{id}/confirm": {
+            "get": {
+                "description": "Confirm user by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Confirm by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "domain.Appearance": {
+            "type": "string",
+            "enum": [
+                "dark",
+                "light"
+            ],
+            "x-enum-varnames": [
+                "DarkAppearance",
+                "LightAppearance"
+            ]
+        },
+        "domain.Country": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "domain.Language": {
             "type": "string",
             "enum": [
@@ -619,14 +988,6 @@ const docTemplate = `{
                 "RussianLanguage"
             ]
         },
-        "domain.Location": {
-            "type": "object",
-            "properties": {
-                "country": {
-                    "type": "string"
-                }
-            }
-        },
         "domain.Question": {
             "type": "object",
             "properties": {
@@ -636,6 +997,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "country_id": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -644,9 +1008,6 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
-                },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
                 },
                 "points": {
                     "type": "integer"
@@ -678,17 +1039,25 @@ const docTemplate = `{
             "enum": [
                 "free",
                 "monthly",
+                "quarterly",
                 "annual"
             ],
             "x-enum-varnames": [
                 "FreeSubscription",
                 "MonthlySubscription",
+                "QuarterlySubscription",
                 "AnnualSubscription"
             ]
         },
         "domain.User": {
             "type": "object",
             "properties": {
+                "achievements": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "avatar_url": {
                     "type": "string"
                 },
@@ -706,6 +1075,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
                 },
                 "is_confirmed": {
                     "type": "boolean"
@@ -725,6 +1097,12 @@ const docTemplate = `{
                 "settings": {
                     "$ref": "#/definitions/domain.UserSettings"
                 },
+                "social_links": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "subscription": {
                     "$ref": "#/definitions/domain.Subscription"
                 },
@@ -739,14 +1117,17 @@ const docTemplate = `{
         "domain.UserSettings": {
             "type": "object",
             "properties": {
+                "appearance": {
+                    "$ref": "#/definitions/domain.Appearance"
+                },
+                "country_id": {
+                    "type": "string"
+                },
                 "email_notifications": {
                     "type": "boolean"
                 },
                 "language": {
                     "$ref": "#/definitions/domain.Language"
-                },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
                 }
             }
         },
@@ -773,9 +1154,6 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
-                },
                 "points": {
                     "type": "integer"
                 },
@@ -785,27 +1163,7 @@ const docTemplate = `{
             }
         },
         "v1.questionUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "attachments": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "description": {
-                    "type": "string"
-                },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
-                },
-                "points": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "v1.userRefreshRequest": {
             "type": "object",
@@ -851,14 +1209,14 @@ const docTemplate = `{
         "v1.userSignUpRequest": {
             "type": "object",
             "properties": {
+                "country_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
                 "language": {
-                    "$ref": "#/definitions/domain.Language"
-                },
-                "location": {
-                    "$ref": "#/definitions/domain.Location"
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -888,10 +1246,22 @@ const docTemplate = `{
         "v1.userUpdateRequest": {
             "type": "object",
             "properties": {
-                "avatar_url": {
+                "appearance": {
+                    "type": "string"
+                },
+                "avatarURL": {
+                    "type": "string"
+                },
+                "countryID": {
                     "type": "string"
                 },
                 "email": {
+                    "type": "string"
+                },
+                "emailNotifications": {
+                    "type": "boolean"
+                },
+                "language": {
                     "type": "string"
                 },
                 "name": {
@@ -900,8 +1270,11 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "settings": {
-                    "$ref": "#/definitions/domain.UserSettings"
+                "socialLinks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "username": {
                     "type": "string"

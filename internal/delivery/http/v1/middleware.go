@@ -34,7 +34,7 @@ func (h *Handler) parseUserIDFromAuthHeader(ctx *fiber.Ctx) (string, error) {
 	return userID, nil
 }
 
-func (h *Handler) authMiddleware(ctx *fiber.Ctx) error {
+func (h *Handler) authUserMiddleware(ctx *fiber.Ctx) error {
 	id, err := h.parseUserIDFromAuthHeader(ctx)
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)

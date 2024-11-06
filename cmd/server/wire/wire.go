@@ -26,12 +26,14 @@ var pkgSet = wire.NewSet(
 
 var repositorySet = wire.NewSet(
 	repository.NewRepository,
+	repository.NewCountryRepository,
 	repository.NewUserRepository,
 	repository.NewQuestionRepository,
 )
 
 var serviceSet = wire.NewSet(
 	service.NewService,
+	service.NewCountryService,
 	service.NewUserService,
 	service.NewQuestionService,
 )
