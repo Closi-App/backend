@@ -10,8 +10,8 @@ import (
 )
 
 type TokensManager interface {
-	NewAccessToken(userID string) (string, error)
-	Parse(accessToken string) (string, error)
+	NewAccessToken(sub string) (string, error)
+	Parse(accessToken string) (sub string, err error)
 	NewRefreshToken() (string, error)
 }
 
@@ -29,10 +29,10 @@ func NewTokensManager(cfg *viper.Viper) TokensManager {
 	}
 }
 
-func (m *tokensManager) NewAccessToken(userID string) (string, error) {
+func (m *tokensManager) NewAccessToken(sub string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"sub": userID,
+			"sub": sub,
 			"exp": time.Now().Add(m.accessTokenTTL).Unix(),
 		})
 
