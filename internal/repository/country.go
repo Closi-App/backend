@@ -10,7 +10,7 @@ import (
 
 type CountryRepository interface {
 	Create(ctx context.Context, country domain.Country) error
-	Get(ctx context.Context) ([]domain.Country, error)
+	GetAll(ctx context.Context) ([]domain.Country, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.Country, error)
 	Delete(ctx context.Context, id bson.ObjectID) error
 }
@@ -32,7 +32,7 @@ func (r *countryRepository) Create(ctx context.Context, country domain.Country) 
 	return err
 }
 
-func (r *countryRepository) Get(ctx context.Context) ([]domain.Country, error) {
+func (r *countryRepository) GetAll(ctx context.Context) ([]domain.Country, error) {
 	cursor, err := r.db.Collection(domain.CountryCollectionName).
 		Find(ctx, bson.M{})
 	if err != nil {

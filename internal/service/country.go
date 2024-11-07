@@ -44,7 +44,7 @@ func (s *countryService) Create(ctx context.Context, input CountryCreateInput) (
 }
 
 func (s *countryService) GetAll(ctx context.Context) ([]domain.Country, error) {
-	return s.repository.Get(ctx)
+	return s.repository.GetAll(ctx)
 }
 
 func (s *countryService) GetByID(ctx context.Context, id bson.ObjectID) (domain.Country, error) {
