@@ -27,6 +27,7 @@ var pkgSet = wire.NewSet(
 var repositorySet = wire.NewSet(
 	repository.NewRepository,
 	repository.NewCountryRepository,
+	repository.NewTagRepository,
 	repository.NewUserRepository,
 	repository.NewQuestionRepository,
 )
@@ -34,6 +35,7 @@ var repositorySet = wire.NewSet(
 var serviceSet = wire.NewSet(
 	service.NewService,
 	service.NewCountryService,
+	service.NewTagService,
 	service.NewUserService,
 	service.NewQuestionService,
 )
