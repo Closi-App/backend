@@ -10,6 +10,10 @@ type idResponse struct {
 	ID string `json:"id"`
 }
 
+type urlResponse struct {
+	URL string `json:"url"`
+}
+
 type errorResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`

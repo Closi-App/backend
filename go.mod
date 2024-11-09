@@ -3,6 +3,7 @@ module github.com/Closi-App/backend
 go 1.23.2
 
 require (
+	github.com/JohnNON/ImgBB v1.0.2
 	github.com/gofiber/contrib/fiberzerolog v1.0.2
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/swagger v1.1.0

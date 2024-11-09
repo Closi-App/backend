@@ -1181,7 +1181,7 @@ const docTemplate = `{
         "domain.Question": {
             "type": "object",
             "properties": {
-                "attachments": {
+                "attachments_url": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1194,7 +1194,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
-                    "description": "TODO: implement images uploader",
                     "type": "string"
                 },
                 "id": {

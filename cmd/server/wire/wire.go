@@ -12,6 +12,7 @@ import (
 	"github.com/Closi-App/backend/pkg/auth"
 	"github.com/Closi-App/backend/pkg/database/mongo"
 	"github.com/Closi-App/backend/pkg/database/redis"
+	"github.com/Closi-App/backend/pkg/imgbb"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
@@ -20,6 +21,7 @@ import (
 var pkgSet = wire.NewSet(
 	mongo.NewMongo,
 	redis.NewRedis,
+	imgbb.NewImgbb,
 	auth.NewTokensManager,
 	auth.NewPasswordHasher,
 )
@@ -27,6 +29,7 @@ var pkgSet = wire.NewSet(
 var repositorySet = wire.NewSet(
 	repository.NewRepository,
 	repository.NewCountryRepository,
+	repository.NewImageRepository,
 	repository.NewTagRepository,
 	repository.NewUserRepository,
 	repository.NewQuestionRepository,
@@ -35,6 +38,7 @@ var repositorySet = wire.NewSet(
 var serviceSet = wire.NewSet(
 	service.NewService,
 	service.NewCountryService,
+	service.NewImageService,
 	service.NewTagService,
 	service.NewUserService,
 	service.NewQuestionService,

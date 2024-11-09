@@ -10,6 +10,7 @@ import (
 type Handler struct {
 	log             *logger.Logger
 	countryService  service.CountryService
+	imageService    service.ImageService
 	tagService      service.TagService
 	userService     service.UserService
 	questionService service.QuestionService
@@ -19,6 +20,8 @@ type Handler struct {
 func NewHandler(
 	log *logger.Logger,
 	countryService service.CountryService,
+	imageService service.ImageService,
+	tagService service.TagService,
 	userService service.UserService,
 	questionService service.QuestionService,
 	tokensManager auth.TokensManager,
@@ -26,6 +29,8 @@ func NewHandler(
 	return &Handler{
 		log:             log,
 		countryService:  countryService,
+		imageService:    imageService,
+		tagService:      tagService,
 		userService:     userService,
 		questionService: questionService,
 		tokensManager:   tokensManager,
@@ -36,6 +41,7 @@ func (h *Handler) InitRoutes(router fiber.Router) {
 	v1 := router.Group("/v1")
 	{
 		h.initCountryRoutes(v1)
+		h.initImageRoutes(v1)
 		h.initTagRoutes(v1)
 		h.initUserRoutes(v1)
 		h.initQuestionRoutes(v1)

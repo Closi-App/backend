@@ -1175,7 +1175,7 @@
         "domain.Question": {
             "type": "object",
             "properties": {
-                "attachments": {
+                "attachments_url": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1188,7 +1188,6 @@
                     "type": "string"
                 },
                 "description": {
-                    "description": "TODO: implement images uploader",
                     "type": "string"
                 },
                 "id": {

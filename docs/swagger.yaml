@@ -27,7 +27,7 @@ definitions:
     - RussianLanguage
   domain.Question:
     properties:
-      attachments:
+      attachments_url:
         items:
           type: string
         type: array
@@ -36,7 +36,6 @@ definitions:
       created_at:
         type: string
       description:
-        description: 'TODO: implement images uploader'
         type: string
       id:
         type: string

@@ -15,6 +15,7 @@ import (
 	"github.com/Closi-App/backend/pkg/auth"
 	"github.com/Closi-App/backend/pkg/database/mongo"
 	"github.com/Closi-App/backend/pkg/database/redis"
+	"github.com/Closi-App/backend/pkg/imgbb"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
@@ -26,16 +27,21 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	serviceService := service.NewService(loggerLogger)
 	database := mongo.NewMongo(viperViper)
 	client := redis.NewRedis(viperViper)
-	repositoryRepository := repository.NewRepository(loggerLogger, database, client)
+	imgbbClient := imgbb.NewImgbb(viperViper)
+	repositoryRepository := repository.NewRepository(loggerLogger, database, client, imgbbClient)
 	countryRepository := repository.NewCountryRepository(repositoryRepository)
 	countryService := service.NewCountryService(serviceService, countryRepository)
+	imageRepository := repository.NewImageRepository(repositoryRepository)
+	imageService := service.NewImageService(serviceService, imageRepository)
+	tagRepository := repository.NewTagRepository(repositoryRepository)
+	tagService := service.NewTagService(serviceService, tagRepository)
 	userRepository := repository.NewUserRepository(repositoryRepository)
 	passwordHasher := auth.NewPasswordHasher(viperViper)
 	tokensManager := auth.NewTokensManager(viperViper)
 	userService := service.NewUserService(serviceService, viperViper, userRepository, passwordHasher, tokensManager)
 	questionRepository := repository.NewQuestionRepository(repositoryRepository)
 	questionService := service.NewQuestionService(serviceService, questionRepository)
-	handler := v1.NewHandler(loggerLogger, countryService, userService, questionService, tokensManager)
+	handler := v1.NewHandler(loggerLogger, countryService, imageService, tagService, userService, questionService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {
@@ -44,11 +50,11 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 
 // wire.go:
 
-var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, auth.NewTokensManager, auth.NewPasswordHasher)
+var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, imgbb.NewImgbb, auth.NewTokensManager, auth.NewPasswordHasher)
 
-var repositorySet = wire.NewSet(repository.NewRepository, repository.NewCountryRepository, repository.NewTagRepository, repository.NewUserRepository, repository.NewQuestionRepository)
+var repositorySet = wire.NewSet(repository.NewRepository, repository.NewCountryRepository, repository.NewImageRepository, repository.NewTagRepository, repository.NewUserRepository, repository.NewQuestionRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewCountryService, service.NewTagService, service.NewUserService, service.NewQuestionService)
+var serviceSet = wire.NewSet(service.NewService, service.NewCountryService, service.NewImageService, service.NewTagService, service.NewUserService, service.NewQuestionService)
 
 var deliverySet = wire.NewSet(v1.NewHandler, http.NewServer)
 
