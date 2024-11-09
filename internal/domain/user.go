@@ -1,9 +1,7 @@
 package domain
 
 import (
-	"fmt"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"math/rand"
 	"time"
 )
 
@@ -21,7 +19,7 @@ const (
 	UserDefaultPoints  = 10
 	UserReferralPoints = 50
 
-	userReferralCodeLength = 4
+	UserReferralCodeLength = 8
 )
 
 type User struct {
@@ -50,19 +48,6 @@ type UserSettings struct {
 	Language           Language      `bson:"language" json:"language"`
 	Appearance         Appearance    `bson:"appearance" json:"appearance"`
 	EmailNotifications bool          `bson:"email_notifications" json:"email_notifications"`
-}
-
-func NewReferralCode() (string, error) { // TODO: move it to utils folder
-	b := make([]byte, userReferralCodeLength)
-
-	s := rand.NewSource(time.Now().Unix())
-	r := rand.New(s)
-
-	if _, err := r.Read(b); err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%x", b), nil
 }
 
 type UserUpdateInput struct {

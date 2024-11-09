@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Closi-App/backend/internal/domain"
 	"github.com/Closi-App/backend/internal/repository"
+	"github.com/Closi-App/backend/internal/utils"
 	"github.com/Closi-App/backend/pkg/auth"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -72,7 +73,7 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		return Tokens{}, err
 	}
 
-	referralCode, err := domain.NewReferralCode()
+	referralCode, err := utils.NewReferralCode(domain.UserReferralCodeLength)
 	if err != nil {
 		return Tokens{}, err
 	}
