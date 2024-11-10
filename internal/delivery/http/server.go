@@ -6,6 +6,7 @@ import (
 	_ "github.com/Closi-App/backend/docs"
 	"github.com/Closi-App/backend/internal/delivery/http/v1"
 	"github.com/Closi-App/backend/pkg/logger"
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -24,6 +25,8 @@ func NewServer(cfg *viper.Viper, log *logger.Logger, handler *v1.Handler) *Serve
 		ReadTimeout:  cfg.GetDuration("http.read_timeout"),
 		WriteTimeout: cfg.GetDuration("http.write_timeout"),
 		IdleTimeout:  cfg.GetDuration("http.idle_timeout"),
+		JSONEncoder:  sonic.Marshal,
+		JSONDecoder:  sonic.Unmarshal,
 	})
 
 	engine.Use(
