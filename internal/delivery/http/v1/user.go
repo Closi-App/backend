@@ -6,7 +6,6 @@ import (
 	"github.com/Closi-App/backend/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"strconv"
 )
 
 func (h *Handler) initUserRoutes(router fiber.Router) {
@@ -23,8 +22,6 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 			auth.Get("/", h.userGet)
 			auth.Put("/", h.userUpdate)
 			auth.Delete("/", h.userDelete)
-
-			auth.Put("/points", h.userAdjustPoints)
 
 			favorites := auth.Group("/favorites")
 			{
@@ -346,35 +343,6 @@ func (h *Handler) userConfirm(ctx *fiber.Ctx) error {
 	}
 
 	if err = h.userService.Confirm(ctx.Context(), objectID); err != nil {
-		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
-	}
-
-	return h.newResponse(ctx, fiber.StatusOK, nil)
-}
-
-// @Summary		Adjust points
-// @Description	Adjust auth user points
-// @Security		UserAuth
-// @Tags			users
-// @Accept			json
-// @Produce		json
-// @Param			pointsAmount	query		int		true	"Points amount"
-// @Success		200				{string}	string	"OK"
-// @Failure		400,401,500		{object}	errorResponse
-// @Router			/users/points [put]
-func (h *Handler) userAdjustPoints(ctx *fiber.Ctx) error {
-	pointsAmountStr := ctx.Query("pointsAmount")
-	pointsAmount, err := strconv.Atoi(pointsAmountStr)
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
-	}
-
-	ctxUser, err := h.getUserFromCtx(ctx)
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
-	}
-
-	if err = h.userService.AdjustPoints(ctx.Context(), ctxUser.ID, pointsAmount); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
