@@ -36,7 +36,7 @@ type tagCreateRequest struct {
 // @Accept			json
 // @Produce		json
 // @Param			tagCreateRequest	body		tagCreateRequest	true	"Request"
-// @Success		201					{string}	string				"Created"
+// @Success		201					{object}	idResponse
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/tags [post]
 func (h *Handler) tagCreate(ctx *fiber.Ctx) error {
