@@ -99,7 +99,7 @@ const docTemplate = `{
         },
         "/questions": {
             "get": {
-                "description": "Retrieve a list of all questions",
+                "description": "Get all question with filter",
                 "consumes": [
                     "application/json"
                 ],
@@ -109,7 +109,33 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "GetAll all questions",
+                "summary": "Get all with filter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question title",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Question tag",
+                        "name": "tag",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Country ID",
+                        "name": "countryID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -118,6 +144,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/domain.Question"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.errorResponse"
                         }
                     },
                     "500": {
@@ -134,7 +166,7 @@ const docTemplate = `{
                         "UserAuth": []
                     }
                 ],
-                "description": "Create a new question",
+                "description": "Create new question",
                 "consumes": [
                     "application/json"
                 ],
@@ -144,7 +176,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "Create question",
+                "summary": "Create",
                 "parameters": [
                     {
                         "description": "Request",
@@ -160,7 +192,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.idResponse"
                         }
                     },
                     "400": {
@@ -186,7 +218,7 @@ const docTemplate = `{
         },
         "/questions/{id}": {
             "get": {
-                "description": "Retrieve a specific question by its ID",
+                "description": "Get question by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -196,7 +228,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "GetAll question by ID",
+                "summary": "Get by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -239,7 +271,7 @@ const docTemplate = `{
                         "UserAuth": []
                     }
                 ],
-                "description": "Update the details of a specific question by ID",
+                "description": "Update question",
                 "consumes": [
                     "application/json"
                 ],
@@ -249,7 +281,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "Update question",
+                "summary": "Update",
                 "parameters": [
                     {
                         "type": "string",
@@ -301,7 +333,7 @@ const docTemplate = `{
                         "UserAuth": []
                     }
                 ],
-                "description": "Delete a specific question by ID",
+                "description": "Delete question",
                 "consumes": [
                     "application/json"
                 ],
@@ -311,7 +343,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "Delete question",
+                "summary": "Delete",
                 "parameters": [
                     {
                         "type": "string",
@@ -412,7 +444,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.idResponse"
                         }
                     },
                     "400": {
@@ -1352,10 +1384,18 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.idResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.questionCreateRequest": {
             "type": "object",
             "properties": {
-                "attachments": {
+                "attachments_url": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1367,13 +1407,42 @@ const docTemplate = `{
                 "points": {
                     "type": "integer"
                 },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "title": {
                     "type": "string"
                 }
             }
         },
         "v1.questionUpdateRequest": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "attachments_url": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
         },
         "v1.tagCreateRequest": {
             "type": "object",

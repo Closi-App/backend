@@ -141,9 +141,14 @@ definitions:
       message:
         type: string
     type: object
+  v1.idResponse:
+    properties:
+      id:
+        type: string
+    type: object
   v1.questionCreateRequest:
     properties:
-      attachments:
+      attachments_url:
         items:
           type: string
         type: array
@@ -151,10 +156,29 @@ definitions:
         type: string
       points:
         type: integer
+      tags:
+        items:
+          type: string
+        type: array
       title:
         type: string
     type: object
   v1.questionUpdateRequest:
+    properties:
+      attachments_url:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      points:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
     type: object
   v1.tagCreateRequest:
     properties:
@@ -303,7 +327,24 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a list of all questions
+      description: Get all question with filter
+      parameters:
+      - description: Question title
+        in: query
+        name: title
+        type: string
+      - description: Question tag
+        in: query
+        name: tag
+        type: string
+      - description: Country ID
+        in: query
+        name: countryID
+        type: string
+      - description: User ID
+        in: query
+        name: userID
+        type: string
       produces:
       - application/json
       responses:
@@ -313,17 +354,21 @@ paths:
             items:
               $ref: '#/definitions/domain.Question'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: GetAll all questions
+      summary: Get all with filter
       tags:
       - questions
     post:
       consumes:
       - application/json
-      description: Create a new question
+      description: Create new question
       parameters:
       - description: Request
         in: body
@@ -337,7 +382,7 @@ paths:
         "201":
           description: Created
           schema:
-            type: string
+            $ref: '#/definitions/v1.idResponse'
         "400":
           description: Bad Request
           schema:
@@ -352,14 +397,14 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Create question
+      summary: Create
       tags:
       - questions
   /questions/{id}:
     delete:
       consumes:
       - application/json
-      description: Delete a specific question by ID
+      description: Delete question
       parameters:
       - description: Question ID
         in: path
@@ -387,13 +432,13 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Delete question
+      summary: Delete
       tags:
       - questions
     get:
       consumes:
       - application/json
-      description: Retrieve a specific question by its ID
+      description: Get question by ID
       parameters:
       - description: Question ID
         in: path
@@ -419,13 +464,13 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/v1.errorResponse'
-      summary: GetAll question by ID
+      summary: Get by ID
       tags:
       - questions
     put:
       consumes:
       - application/json
-      description: Update the details of a specific question by ID
+      description: Update question
       parameters:
       - description: Question ID
         in: path
@@ -459,7 +504,7 @@ paths:
             $ref: '#/definitions/v1.errorResponse'
       security:
       - UserAuth: []
-      summary: Update question
+      summary: Update
       tags:
       - questions
   /tags:
@@ -500,7 +545,7 @@ paths:
         "201":
           description: Created
           schema:
-            type: string
+            $ref: '#/definitions/v1.idResponse'
         "400":
           description: Bad Request
           schema:

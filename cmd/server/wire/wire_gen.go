@@ -40,7 +40,7 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	tokensManager := auth.NewTokensManager(viperViper)
 	userService := service.NewUserService(serviceService, viperViper, userRepository, passwordHasher, tokensManager)
 	questionRepository := repository.NewQuestionRepository(repositoryRepository)
-	questionService := service.NewQuestionService(serviceService, questionRepository)
+	questionService := service.NewQuestionService(serviceService, questionRepository, tagService)
 	handler := v1.NewHandler(loggerLogger, countryService, imageService, tagService, userService, questionService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)

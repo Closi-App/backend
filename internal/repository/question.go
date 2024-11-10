@@ -11,10 +11,9 @@ import (
 
 type QuestionRepository interface {
 	Create(ctx context.Context, question domain.Question) error
-	Get(ctx context.Context) ([]domain.Question, error)
+	GetAll(ctx context.Context, filter ...domain.QuestionGetAllFilter) ([]domain.Question, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.Question, error)
-	GetByLocation(ctx context.Context, location domain.Location) ([]domain.Question, error)
-	Update(ctx context.Context, id, userID bson.ObjectID, input QuestionUpdateInput) error
+	Update(ctx context.Context, id, userID bson.ObjectID, input domain.QuestionUpdateInput) error
 	Delete(ctx context.Context, id, userID bson.ObjectID) error
 }
 
@@ -31,39 +30,39 @@ func NewQuestionRepository(repository *Repository) QuestionRepository {
 func (r *questionRepository) Create(ctx context.Context, question domain.Question) error {
 	_, err := r.db.Collection(domain.QuestionCollectionName).
 		InsertOne(ctx, question)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
-func (r *questionRepository) Get(ctx context.Context) ([]domain.Question, error) {
+func (r *questionRepository) GetAll(ctx context.Context, filter ...domain.QuestionGetAllFilter) ([]domain.Question, error) {
+	filterFields := bson.M{}
+
+	if len(filter) > 0 {
+		f := filter[0]
+
+		if f.Title != nil {
+			filterFields["title"] = f.Title
+		}
+		if f.Tag != nil {
+			filterFields["tags"] = bson.M{"$in": f.Tag}
+		}
+		if f.CountryID != nil {
+			filterFields["country_id"] = f.CountryID
+		}
+		if f.UserID != nil {
+			filterFields["user_id"] = f.UserID
+		}
+	}
+
 	cursor, err := r.db.Collection(domain.QuestionCollectionName).
-		Find(ctx, bson.M{})
+		Find(ctx, filterFields)
 	if err != nil {
 		return nil, err
 	}
 
 	var questions []domain.Question
 
-	if err := cursor.All(ctx, &questions); err != nil {
-		return nil, err
-	}
-
-	return questions, nil
-}
-
-func (r *questionRepository) GetByLocation(ctx context.Context, location domain.Location) ([]domain.Question, error) {
-	cursor, err := r.db.Collection(domain.QuestionCollectionName).
-		Find(ctx, bson.M{"location.country": location.Country})
-	if err != nil {
-		return nil, err
-	}
-
-	var questions []domain.Question
-
-	if err := cursor.All(ctx, &questions); err != nil {
+	if err = cursor.All(ctx, &questions); err != nil {
 		return nil, err
 	}
 
@@ -79,49 +78,36 @@ func (r *questionRepository) GetByID(ctx context.Context, id bson.ObjectID) (dom
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.Question{}, domain.ErrQuestionNotFound
 		}
+
 		return domain.Question{}, err
 	}
 
 	return question, nil
 }
 
-type QuestionUpdateInput struct {
-	Title       string
-	Description string
-	Attachments []string
-	Points      uint
-	Location    *domain.Location
-}
+func (r *questionRepository) Update(ctx context.Context, id, userID bson.ObjectID, input domain.QuestionUpdateInput) error {
+	updateFields := bson.M{}
 
-func (r *questionRepository) Update(ctx context.Context, id, userID bson.ObjectID, input QuestionUpdateInput) error {
-	updateQuery := bson.M{}
-
-	if input.Title != "" {
-		updateQuery["title"] = input.Title
+	if input.Title != nil {
+		updateFields["title"] = input.Title
 	}
-	if input.Description != "" {
-		updateQuery["description"] = input.Description
+	if input.Description != nil {
+		updateFields["description"] = input.Description
 	}
-	if input.Attachments != nil {
-		var attachments []interface{}
-
-		for _, a := range input.Attachments {
-			attachments = append(attachments, a)
-		}
-
-		updateQuery["attachments"] = attachments
+	if input.AttachmentsURL != nil {
+		updateFields["attachments_url"] = input.AttachmentsURL
 	}
-	if input.Points != 0 {
-		updateQuery["points"] = input.Points
+	if input.Tags != nil {
+		updateFields["tags"] = input.Tags
 	}
-	if input.Location != nil {
-		updateQuery["location"] = input.Location
+	if input.Points != nil {
+		updateFields["points"] = input.Points
 	}
 
-	updateQuery["updated_at"] = time.Now()
+	updateFields["updated_at"] = time.Now()
 
 	_, err := r.db.Collection(domain.QuestionCollectionName).
-		UpdateOne(ctx, bson.M{"_id": id, "user_id": userID}, bson.M{"$set": updateQuery})
+		UpdateOne(ctx, bson.M{"_id": id, "user_id": userID}, bson.M{"$set": updateFields})
 
 	return err
 }
