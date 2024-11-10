@@ -55,7 +55,7 @@ func (h *Handler) tagCreate(ctx *fiber.Ctx) error {
 		CountryID: ctxUser.Settings.CountryID,
 	})
 	if err != nil {
-		return h.newResponse(ctx, fiber.StatusInternalServerError, domain.ErrBadRequest)
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
 	return h.newResponse(ctx, fiber.StatusCreated, idResponse{id.Hex()})
