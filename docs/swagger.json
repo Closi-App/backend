@@ -867,61 +867,6 @@
                 }
             }
         },
-        "/users/points": {
-            "put": {
-                "security": [
-                    {
-                        "UserAuth": []
-                    }
-                ],
-                "description": "Adjust auth user points",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Adjust points",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Points amount",
-                        "name": "pointsAmount",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/v1.errorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/v1.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/users/refresh": {
             "post": {
                 "description": "Refresh user's tokens",
@@ -1197,10 +1142,16 @@
             "type": "string",
             "enum": [
                 "en",
+                "uk",
+                "de",
+                "pl",
                 "ru"
             ],
             "x-enum-varnames": [
                 "EnglishLanguage",
+                "UkrainianLanguage",
+                "DeutschLanguage",
+                "PolishLanguage",
                 "RussianLanguage"
             ]
         },

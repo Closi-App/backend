@@ -20,10 +20,16 @@ definitions:
   domain.Language:
     enum:
     - en
+    - uk
+    - de
+    - pl
     - ru
     type: string
     x-enum-varnames:
     - EnglishLanguage
+    - UkrainianLanguage
+    - DeutschLanguage
+    - PolishLanguage
     - RussianLanguage
   domain.Question:
     properties:
@@ -883,41 +889,6 @@ paths:
       security:
       - UserAuth: []
       summary: Add favorite
-      tags:
-      - users
-  /users/points:
-    put:
-      consumes:
-      - application/json
-      description: Adjust auth user points
-      parameters:
-      - description: Points amount
-        in: query
-        name: pointsAmount
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-      security:
-      - UserAuth: []
-      summary: Adjust points
       tags:
       - users
   /users/refresh:
