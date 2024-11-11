@@ -88,7 +88,6 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		Points:       domain.UserDefaultPoints,
 		Favorites:    nil,
 		Achievements: nil,
-		SocialLinks:  nil,
 		ReferralCode: referralCode,
 		Subscription: domain.NewSubscription(domain.FreeSubscription),
 		Settings: domain.UserSettings{
