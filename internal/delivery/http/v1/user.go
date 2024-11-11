@@ -28,8 +28,6 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 				favorites.Post("/:questionID", h.userAddFavorite)
 				favorites.Delete("/:questionID", h.userRemoveFavorite)
 			}
-
-			auth.Post("/achievements/:achievementID", h.userAddAchievement)
 		}
 
 		// TODO: admins handlers
@@ -401,35 +399,6 @@ func (h *Handler) userRemoveFavorite(ctx *fiber.Ctx) error {
 	}
 
 	if err = h.userService.RemoveFavorite(ctx.Context(), ctxUser.ID, questionObjectID); err != nil {
-		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
-	}
-
-	return h.newResponse(ctx, fiber.StatusOK, nil)
-}
-
-// @Summary		Add achievement
-// @Description	Add achievement for auth user
-// @Security		UserAuth
-// @Tags			users
-// @Accept			json
-// @Produce		json
-// @Param			achievementID	path		string	true	"Achievement ID"
-// @Success		200				{string}	string	"OK"
-// @Failure		400,401,500		{object}	errorResponse
-// @Router			/users/achievements/{achievementID} [post]
-func (h *Handler) userAddAchievement(ctx *fiber.Ctx) error {
-	achievementID := ctx.Params("questionID")
-	achievementObjectID, err := bson.ObjectIDFromHex(achievementID)
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
-	}
-
-	ctxUser, err := h.getUserFromCtx(ctx)
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
-	}
-
-	if err = h.userService.AddAchievement(ctx.Context(), ctxUser.ID, achievementObjectID); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 

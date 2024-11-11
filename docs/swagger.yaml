@@ -1,5 +1,24 @@
 basePath: /api/v1/
 definitions:
+  domain.Answer:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_verified:
+        type: boolean
+      likes:
+        type: integer
+      question_id:
+        type: string
+      text:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   domain.Appearance:
     enum:
     - dark
@@ -140,6 +159,18 @@ definitions:
       language:
         $ref: '#/definitions/domain.Language'
     type: object
+  v1.answerCreateRequest:
+    properties:
+      question_id:
+        type: string
+      text:
+        type: string
+    type: object
+  v1.answerUpdateRequest:
+    properties:
+      text:
+        type: string
+    type: object
   v1.errorResponse:
     properties:
       code:
@@ -275,6 +306,182 @@ info:
   title: Closi API
   version: "1.0"
 paths:
+  /answers:
+    get:
+      consumes:
+      - application/json
+      description: Get all answers with filter
+      parameters:
+      - description: Question ID
+        in: query
+        name: questionID
+        type: string
+      - description: User ID
+        in: query
+        name: userID
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Question'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get all with filter
+      tags:
+      - answers
+    post:
+      consumes:
+      - application/json
+      description: Create new answer
+      parameters:
+      - description: Request
+        in: body
+        name: answerCreateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.answerCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/v1.idResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Create
+      tags:
+      - answers
+  /answers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Delete
+      tags:
+      - answers
+    get:
+      consumes:
+      - application/json
+      description: Get answer by ID
+      parameters:
+      - description: Answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Answer'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      summary: Get by ID
+      tags:
+      - answers
+    put:
+      consumes:
+      - application/json
+      description: Update answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request
+        in: body
+        name: answerUpdateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.answerUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Update
+      tags:
+      - answers
   /countries:
     get:
       consumes:
@@ -785,41 +992,6 @@ paths:
           schema:
             $ref: '#/definitions/v1.errorResponse'
       summary: Confirm by ID
-      tags:
-      - users
-  /users/achievements/{achievementID}:
-    post:
-      consumes:
-      - application/json
-      description: Add achievement for auth user
-      parameters:
-      - description: Achievement ID
-        in: path
-        name: achievementID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.errorResponse'
-      security:
-      - UserAuth: []
-      summary: Add achievement
       tags:
       - users
   /users/favorites/{questionID}:

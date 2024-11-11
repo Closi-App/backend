@@ -14,6 +14,7 @@ type Handler struct {
 	tagService      service.TagService
 	userService     service.UserService
 	questionService service.QuestionService
+	answerService   service.AnswerService
 	tokensManager   auth.TokensManager
 }
 
@@ -24,6 +25,7 @@ func NewHandler(
 	tagService service.TagService,
 	userService service.UserService,
 	questionService service.QuestionService,
+	answerService service.AnswerService,
 	tokensManager auth.TokensManager,
 ) *Handler {
 	return &Handler{
@@ -33,6 +35,7 @@ func NewHandler(
 		tagService:      tagService,
 		userService:     userService,
 		questionService: questionService,
+		answerService:   answerService,
 		tokensManager:   tokensManager,
 	}
 }
@@ -45,5 +48,6 @@ func (h *Handler) InitRoutes(router fiber.Router) {
 		h.initTagRoutes(v1)
 		h.initUserRoutes(v1)
 		h.initQuestionRoutes(v1)
+		h.initAnswerRoutes(v1)
 	}
 }

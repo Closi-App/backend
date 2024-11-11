@@ -41,7 +41,9 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	userService := service.NewUserService(serviceService, viperViper, userRepository, passwordHasher, tokensManager)
 	questionRepository := repository.NewQuestionRepository(repositoryRepository)
 	questionService := service.NewQuestionService(serviceService, questionRepository, tagService)
-	handler := v1.NewHandler(loggerLogger, countryService, imageService, tagService, userService, questionService, tokensManager)
+	answerRepository := repository.NewAnswerRepository(repositoryRepository)
+	answerService := service.NewAnswerService(serviceService, answerRepository)
+	handler := v1.NewHandler(loggerLogger, countryService, imageService, tagService, userService, questionService, answerService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {
@@ -52,9 +54,9 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 
 var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, imgbb.NewImgbb, auth.NewTokensManager, auth.NewPasswordHasher)
 
-var repositorySet = wire.NewSet(repository.NewRepository, repository.NewCountryRepository, repository.NewImageRepository, repository.NewTagRepository, repository.NewUserRepository, repository.NewQuestionRepository)
+var repositorySet = wire.NewSet(repository.NewRepository, repository.NewCountryRepository, repository.NewImageRepository, repository.NewTagRepository, repository.NewUserRepository, repository.NewQuestionRepository, repository.NewAnswerRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewCountryService, service.NewImageService, service.NewTagService, service.NewUserService, service.NewQuestionService)
+var serviceSet = wire.NewSet(service.NewService, service.NewCountryService, service.NewImageService, service.NewTagService, service.NewUserService, service.NewQuestionService, service.NewAnswerService)
 
 var deliverySet = wire.NewSet(v1.NewHandler, http.NewServer)
 

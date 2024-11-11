@@ -33,6 +33,7 @@ var repositorySet = wire.NewSet(
 	repository.NewTagRepository,
 	repository.NewUserRepository,
 	repository.NewQuestionRepository,
+	repository.NewAnswerRepository,
 )
 
 var serviceSet = wire.NewSet(
@@ -42,6 +43,7 @@ var serviceSet = wire.NewSet(
 	service.NewTagService,
 	service.NewUserService,
 	service.NewQuestionService,
+	service.NewAnswerService,
 )
 
 var deliverySet = wire.NewSet(
