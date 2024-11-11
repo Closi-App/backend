@@ -22,9 +22,9 @@ func (h *Handler) initImageRoutes(router fiber.Router) {
 // @Param			image		formData	file	true	"Image"
 // @Success		201			{string}	string	"Created"
 // @Failure		400,401,500	{object}	errorResponse
-// @Router			/tags [post]
+// @Router			/images [post]
 func (h *Handler) imageUpload(ctx *fiber.Ctx) error {
-	f, err := ctx.FormFile("file")
+	f, err := ctx.FormFile("image")
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
 	}
