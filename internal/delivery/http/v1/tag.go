@@ -3,7 +3,6 @@ package v1
 import (
 	"errors"
 	"github.com/Closi-App/backend/internal/domain"
-	"github.com/Closi-App/backend/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -16,49 +15,11 @@ func (h *Handler) initTagRoutes(router fiber.Router) {
 
 		auth := tags.Group("", h.authUserMiddleware)
 		{
-			auth.Post("/", h.tagCreate)
-			tags.Get("/country/:countryID", h.tagGetAllByCountryID)
+			auth.Get("/country/:countryID", h.tagGetAllByCountryID)
 		}
 
-		// TODO: delete function for admins
+		// TODO: create, delete function for admins
 	}
-}
-
-type tagCreateRequest struct {
-	Name      string `json:"name"`
-	CountryID string `json:"country_id"`
-}
-
-// @Summary		Create
-// @Description	Create new tag
-// @Security		UserAuth
-// @Tags			tags
-// @Accept			json
-// @Produce		json
-// @Param			tagCreateRequest	body		tagCreateRequest	true	"Request"
-// @Success		201					{object}	idResponse
-// @Failure		400,401,500			{object}	errorResponse
-// @Router			/tags [post]
-func (h *Handler) tagCreate(ctx *fiber.Ctx) error {
-	var req tagCreateRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
-	}
-
-	ctxUser, err := h.getUserFromCtx(ctx)
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
-	}
-
-	id, err := h.tagService.Create(ctx.Context(), service.TagCreateInput{
-		Name:      req.Name,
-		CountryID: ctxUser.Settings.CountryID,
-	})
-	if err != nil {
-		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
-	}
-
-	return h.newResponse(ctx, fiber.StatusCreated, idResponse{id.Hex()})
 }
 
 // @Summary		Get by ID
