@@ -19,6 +19,9 @@ func (h *Handler) initAnswerRoutes(router fiber.Router) {
 			auth.Post("/", h.answerCreate)
 			auth.Put("/:id", h.answerUpdate)
 			auth.Delete("/:id", h.answerDelete)
+
+			auth.Put("/:id/likes", h.answerAddLike)
+			auth.Delete("/:id/likes", h.answerRemoveLike)
 		}
 	}
 }
@@ -200,7 +203,55 @@ func (h *Handler) answerDelete(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
-	if err = h.questionService.Delete(ctx.Context(), objectID, ctxUser.ID); err != nil {
+	if err = h.answerService.Delete(ctx.Context(), objectID, ctxUser.ID); err != nil {
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, nil)
+}
+
+// @Summary		Add like
+// @Description	Add like for answer
+// @Security		UserAuth
+// @Tags			answers
+// @Accept			json
+// @Produce		json
+// @Param			id			path		string	true	"Answer ID"
+// @Success		200			{string}	string	"OK"
+// @Failure		400,401,500	{object}	errorResponse
+// @Router			/answers/{id}/likes [put]
+func (h *Handler) answerAddLike(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	if err = h.answerService.AddLike(ctx.Context(), objectID); err != nil {
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK, nil)
+}
+
+// @Summary		Remove like
+// @Description	Remove like for answer
+// @Security		UserAuth
+// @Tags			answers
+// @Accept			json
+// @Produce		json
+// @Param			id			path		string	true	"Answer ID"
+// @Success		200			{string}	string	"OK"
+// @Failure		400,401,500	{object}	errorResponse
+// @Router			/answers/{id}/likes [delete]
+func (h *Handler) answerRemoveLike(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
+	if err = h.answerService.RemoveLike(ctx.Context(), objectID); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
