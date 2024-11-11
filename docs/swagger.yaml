@@ -482,6 +482,75 @@ paths:
       summary: Update
       tags:
       - answers
+  /answers/{id}/likes:
+    delete:
+      consumes:
+      - application/json
+      description: Remove like for answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Remove like
+      tags:
+      - answers
+    put:
+      consumes:
+      - application/json
+      description: Add like for answer
+      parameters:
+      - description: Answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Add like
+      tags:
+      - answers
   /countries:
     get:
       consumes:
