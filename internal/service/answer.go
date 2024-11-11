@@ -22,13 +22,22 @@ type AnswerService interface {
 
 type answerService struct {
 	*Service
-	repository repository.AnswerRepository
+	repository      repository.AnswerRepository
+	questionService QuestionService
+	userService     UserService
 }
 
-func NewAnswerService(service *Service, repository repository.AnswerRepository) AnswerService {
+func NewAnswerService(
+	service *Service,
+	repository repository.AnswerRepository,
+	questionService QuestionService,
+	userService UserService,
+) AnswerService {
 	return &answerService{
-		Service:    service,
-		repository: repository,
+		Service:         service,
+		repository:      repository,
+		questionService: questionService,
+		userService:     userService,
 	}
 }
 
@@ -51,6 +60,19 @@ func (s *answerService) Create(ctx context.Context, input AnswerCreateInput) (bs
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}); err != nil {
+		return bson.ObjectID{}, err
+	}
+
+	question, err := s.questionService.GetByID(ctx, input.QuestionID)
+	if err != nil {
+		return bson.ObjectID{}, err
+	}
+
+	if err = s.userService.AdjustPoints(ctx, input.UserID, int(question.Points)); err != nil {
+		return bson.ObjectID{}, err
+	}
+
+	if err = s.userService.AdjustPoints(ctx, question.UserID, -1*int(question.Points)); err != nil {
 		return bson.ObjectID{}, err
 	}
 
