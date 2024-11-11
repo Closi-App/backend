@@ -19,7 +19,7 @@ const (
 	UserDefaultPoints  = 10
 	UserReferralPoints = 50
 
-	UserReferralCodeLength = 8
+	UserReferralCodeLength = 4
 )
 
 type User struct {
