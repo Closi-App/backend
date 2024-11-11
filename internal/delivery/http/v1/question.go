@@ -52,6 +52,10 @@ func (h *Handler) questionCreate(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
+	if ctxUser.Points < req.Points {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrUserInsufficientPoints)
+	}
+
 	id, err := h.questionService.Create(ctx.Context(), service.QuestionCreateInput{
 		Title:          req.Title,
 		Description:    req.Description,
