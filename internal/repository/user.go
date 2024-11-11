@@ -139,9 +139,6 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input dom
 	if input.AvatarURL != nil {
 		updateFields["avatar_url"] = input.AvatarURL
 	}
-	if input.SocialLinks != nil {
-		updateFields["social_links"] = input.SocialLinks
-	}
 	if input.CountryID != nil {
 		updateFields["settings.country_id"] = input.CountryID
 	}

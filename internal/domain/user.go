@@ -32,7 +32,6 @@ type User struct {
 	Points       uint            `bson:"points" json:"points"`
 	Favorites    []bson.ObjectID `bson:"favorites" json:"favorites"`
 	Achievements []bson.ObjectID `bson:"achievements" json:"achievements"`
-	SocialLinks  []string        `bson:"social_links" json:"social_links"`
 	ReferralCode string          `bson:"referral_code" json:"referral_code"`
 	Subscription Subscription    `bson:"subscription" json:"subscription"`
 	Settings     UserSettings    `bson:"settings" json:"settings"`
@@ -40,7 +39,6 @@ type User struct {
 	IsBlocked    bool            `bson:"is_blocked" json:"is_blocked"`
 	CreatedAt    time.Time       `bson:"created_at" json:"created_at"`
 	UpdatedAt    time.Time       `bson:"updated_at" json:"updated_at"`
-	// TODO: promotions, promo codes for subscription
 	// TODO: achievements logic
 }
 
@@ -57,7 +55,6 @@ type UserUpdateInput struct {
 	Email              *string
 	Password           *string
 	AvatarURL          *string
-	SocialLinks        []string
 	CountryID          *bson.ObjectID
 	Language           *Language
 	Appearance         *Appearance

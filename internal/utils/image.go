@@ -8,7 +8,6 @@ import (
 const imageQuality = 40
 
 func NewImageName(fileBytes []byte) string {
-	// TODO: image size reduction
 	hash := md5.Sum(fileBytes)
 	return hex.EncodeToString(hash[:])
 }

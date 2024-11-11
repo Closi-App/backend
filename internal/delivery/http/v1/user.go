@@ -196,7 +196,6 @@ type userUpdateRequest struct {
 	Email              *string
 	Password           *string
 	AvatarURL          *string
-	SocialLinks        []string
 	CountryID          *string
 	Language           *string
 	Appearance         *string
@@ -251,7 +250,6 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 		Email:              req.Email,
 		Password:           req.Password,
 		AvatarURL:          req.AvatarURL,
-		SocialLinks:        req.SocialLinks,
 		CountryID:          &countryObjectID,
 		Language:           &language,
 		Appearance:         &appearance,
