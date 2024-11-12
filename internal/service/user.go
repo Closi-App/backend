@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/Closi-App/backend/internal/domain"
 	"github.com/Closi-App/backend/internal/repository"
 	"github.com/Closi-App/backend/internal/utils"
@@ -33,25 +34,30 @@ type UserService interface {
 
 type userService struct {
 	*Service
-	repository      repository.UserRepository
-	passwordHasher  auth.PasswordHasher
-	tokensManager   auth.TokensManager
-	refreshTokenTTL time.Duration
+	repository             repository.UserRepository
+	emailService           EmailService
+	passwordHasher         auth.PasswordHasher
+	tokensManager          auth.TokensManager
+	refreshTokenTTL        time.Duration
+	confirmationLinkFormat string
 }
 
 func NewUserService(
 	service *Service,
 	cfg *viper.Viper,
 	repository repository.UserRepository,
+	emailService EmailService,
 	passwordHasher auth.PasswordHasher,
 	tokensManager auth.TokensManager,
 ) UserService {
 	return &userService{
-		Service:         service,
-		repository:      repository,
-		passwordHasher:  passwordHasher,
-		tokensManager:   tokensManager,
-		refreshTokenTTL: cfg.GetDuration("auth.tokens.refresh_token.ttl"),
+		Service:                service,
+		repository:             repository,
+		emailService:           emailService,
+		passwordHasher:         passwordHasher,
+		tokensManager:          tokensManager,
+		refreshTokenTTL:        cfg.GetDuration("auth.tokens.refresh_token.ttl"),
+		confirmationLinkFormat: cfg.GetString("auth.confirmation_link_format"),
 	}
 }
 
@@ -78,7 +84,7 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		return Tokens{}, err
 	}
 
-	if err := s.repository.Create(ctx, domain.User{
+	if err = s.repository.Create(ctx, domain.User{
 		ID:           id,
 		Name:         input.Name,
 		Username:     input.Username,
@@ -116,7 +122,17 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		}
 	}
 
-	// TODO: sending confirmation email with confirmation link
+	if err = s.emailService.Send(input.Email, domain.WelcomeEmail, input.Language, domain.WelcomeEmailData{
+		Name: input.Name,
+	}); err != nil {
+		return Tokens{}, err
+	}
+
+	if err = s.emailService.Send(input.Email, domain.ConfirmationEmail, input.Language, domain.ConfirmationEmailData{
+		ConfirmationLink: s.generateConfirmationLink(id),
+	}); err != nil {
+		return Tokens{}, err
+	}
 
 	return s.createSession(ctx, id)
 }
@@ -153,9 +169,26 @@ func (s *userService) Update(ctx context.Context, id bson.ObjectID, input domain
 		input.Password = &hashedPassword
 	}
 
-	// TODO: sending confirmation email with confirmation link if email was updated
+	if err := s.repository.Update(ctx, id, input); err != nil {
+		return err
+	}
 
-	return s.repository.Update(ctx, id, input)
+	if input.Email != nil {
+		user, err := s.repository.GetByID(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if user.Email != *input.Email {
+			if err = s.emailService.Send(*input.Email, domain.ConfirmationEmail, user.Settings.Language, domain.ConfirmationEmailData{
+				ConfirmationLink: s.generateConfirmationLink(id),
+			}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *userService) Delete(ctx context.Context, id bson.ObjectID) error {
@@ -231,4 +264,8 @@ func (s *userService) createSession(ctx context.Context, id bson.ObjectID) (Toke
 	err = s.repository.CreateSession(ctx, tokens.RefreshToken, id, s.refreshTokenTTL)
 
 	return tokens, err
+}
+
+func (s *userService) generateConfirmationLink(id bson.ObjectID) string {
+	return fmt.Sprintf(s.confirmationLinkFormat, id.Hex())
 }

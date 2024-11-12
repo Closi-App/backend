@@ -137,10 +137,6 @@ definitions:
         type: string
       settings:
         $ref: '#/definitions/domain.UserSettings'
-      social_links:
-        items:
-          type: string
-        type: array
       subscription:
         $ref: '#/definitions/domain.Subscription'
       updated_at:
@@ -285,10 +281,6 @@ definitions:
         type: string
       password:
         type: string
-      socialLinks:
-        items:
-          type: string
-        type: array
       username:
         type: string
     type: object

@@ -1644,12 +1644,6 @@ const docTemplate = `{
                 "settings": {
                     "$ref": "#/definitions/domain.UserSettings"
                 },
-                "social_links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "subscription": {
                     "$ref": "#/definitions/domain.Subscription"
                 },
@@ -1872,12 +1866,6 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
-                },
-                "socialLinks": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "username": {
                     "type": "string"

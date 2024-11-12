@@ -17,6 +17,7 @@ import (
 	"github.com/Closi-App/backend/pkg/database/redis"
 	"github.com/Closi-App/backend/pkg/imgbb"
 	"github.com/Closi-App/backend/pkg/logger"
+	"github.com/Closi-App/backend/pkg/smtp"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 )
@@ -36,9 +37,11 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	tagRepository := repository.NewTagRepository(repositoryRepository)
 	tagService := service.NewTagService(serviceService, tagRepository)
 	userRepository := repository.NewUserRepository(repositoryRepository)
+	sender := smtp.NewSMTPSender(viperViper)
+	emailService := service.NewEmailService(serviceService, sender)
 	passwordHasher := auth.NewPasswordHasher(viperViper)
 	tokensManager := auth.NewTokensManager(viperViper)
-	userService := service.NewUserService(serviceService, viperViper, userRepository, passwordHasher, tokensManager)
+	userService := service.NewUserService(serviceService, viperViper, userRepository, emailService, passwordHasher, tokensManager)
 	questionRepository := repository.NewQuestionRepository(repositoryRepository)
 	questionService := service.NewQuestionService(serviceService, questionRepository, tagService)
 	answerRepository := repository.NewAnswerRepository(repositoryRepository)
@@ -52,11 +55,11 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 
 // wire.go:
 
-var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, imgbb.NewImgbb, auth.NewTokensManager, auth.NewPasswordHasher)
+var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, imgbb.NewImgbb, smtp.NewSMTPSender, auth.NewTokensManager, auth.NewPasswordHasher)
 
 var repositorySet = wire.NewSet(repository.NewRepository, repository.NewCountryRepository, repository.NewImageRepository, repository.NewTagRepository, repository.NewUserRepository, repository.NewQuestionRepository, repository.NewAnswerRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewCountryService, service.NewImageService, service.NewTagService, service.NewUserService, service.NewQuestionService, service.NewAnswerService)
+var serviceSet = wire.NewSet(service.NewService, service.NewCountryService, service.NewImageService, service.NewEmailService, service.NewTagService, service.NewUserService, service.NewQuestionService, service.NewAnswerService)
 
 var deliverySet = wire.NewSet(v1.NewHandler, http.NewServer)
 
