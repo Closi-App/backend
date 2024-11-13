@@ -34,6 +34,8 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 	}
 }
 
+// TODO: fields validation
+
 type userSignUpRequest struct {
 	Name         string `json:"name"`
 	Username     string `json:"username"`

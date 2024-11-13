@@ -8,11 +8,13 @@ import (
 
 type smtpSender struct {
 	*gomail.Dialer
+	from string
 }
 
 func (s *smtpSender) Send(input SendInput) error {
 	msg := gomail.NewMessage()
 
+	msg.SetHeader("From", s.from)
 	msg.SetHeader("To", input.To)
 	msg.SetHeader("Subject", input.Subject)
 	msg.SetBody(string(input.ContentType), input.Body)
@@ -34,5 +36,6 @@ func NewSMTPSender(cfg *viper.Viper) Sender {
 
 	return &smtpSender{
 		Dialer: dialer,
+		from:   cfg.GetString("smtp.username"),
 	}
 }
