@@ -11,21 +11,6 @@ type smtpSender struct {
 	from string
 }
 
-func (s *smtpSender) Send(input SendInput) error {
-	msg := gomail.NewMessage()
-
-	msg.SetHeader("From", s.from)
-	msg.SetHeader("To", input.To)
-	msg.SetHeader("Subject", input.Subject)
-	msg.SetBody(string(input.ContentType), input.Body)
-
-	if err := s.DialAndSend(msg); err != nil {
-		return errors.Wrap(err, "error sending email via smtp")
-	}
-
-	return nil
-}
-
 func NewSMTPSender(cfg *viper.Viper) Sender {
 	dialer := gomail.NewDialer(
 		cfg.GetString("smtp.host"),
@@ -38,4 +23,25 @@ func NewSMTPSender(cfg *viper.Viper) Sender {
 		Dialer: dialer,
 		from:   cfg.GetString("smtp.username"),
 	}
+}
+
+func (s *smtpSender) Send(input SendInput) error {
+	msg := gomail.NewMessage()
+
+	msg.SetHeader("From", s.from)
+	msg.SetHeader("To", input.To...)
+	msg.SetHeader("Subject", input.Subject)
+	msg.SetBody(string(input.ContentType), input.Body)
+
+	if input.EmbeddedFiles != nil {
+		for _, embeddedFile := range input.EmbeddedFiles {
+			msg.Embed(embeddedFile.Path)
+		}
+	}
+
+	if err := s.DialAndSend(msg); err != nil {
+		return errors.Wrap(err, "error sending email via smtp")
+	}
+
+	return nil
 }

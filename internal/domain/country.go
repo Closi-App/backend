@@ -11,6 +11,6 @@ const (
 )
 
 type Country struct {
-	ID   bson.ObjectID       `bson:"_id" json:"id"`
-	Name map[Language]string `bson:"name" json:"name"`
+	ID    bson.ObjectID     `bson:"_id" json:"id"`
+	Names map[string]string `bson:"name" json:"name"`
 }

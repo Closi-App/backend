@@ -1,4 +1,17 @@
-<h1>Willkommen, {{.Name}}!</h1>
-<p>Wir freuen uns, dass Sie bei uns sind. Vielen Dank für Ihre Registrierung!</p>
-<p>Mit besten Grüßen,</p>
-<p>Das Closi-Team</p>
+{{ define "content" }}
+
+<h2>Willkommen, {{.Name}}</h2>
+
+<p>Wir freuen uns, Sie in unserer wachsenden Community willkommen zu heißen.</p>
+<p>Vielen Dank, dass Sie sich registriert haben und uns Ihr Vertrauen schenken, spannende Möglichkeiten und Lösungen in Ihrer Stadt oder darüber hinaus zu entdecken. Egal, ob Sie neue Orte erkunden, Rat suchen oder sich mit anderen verbinden – wir sind hier, um Ihre Erfahrung nahtlos und angenehm zu gestalten.</p>
+<p>Wenn Sie Fragen haben oder Unterstützung benötigen, können Sie sich jederzeit an unser Support-Team wenden.</p>
+
+<p>
+    Mit freundlichen Grüßen,
+    <br>
+    <span style="
+        font-weight: 600
+    ">Das Closi-Team</span>
+</p>
+
+{{ end }}

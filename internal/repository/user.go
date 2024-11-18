@@ -19,6 +19,7 @@ type UserRepository interface {
 	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (domain.User, error)
 	GetByReferralCode(ctx context.Context, referralCode string) (domain.User, error)
 	Update(ctx context.Context, id bson.ObjectID, input domain.UserUpdateInput) error
+	UpdateSettings(ctx context.Context, id bson.ObjectID, input domain.UserSettingsUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 
 	AdjustPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error
@@ -139,6 +140,18 @@ func (r *userRepository) Update(ctx context.Context, id bson.ObjectID, input dom
 	if input.AvatarURL != nil {
 		updateFields["avatar_url"] = input.AvatarURL
 	}
+
+	updateFields["updated_at"] = time.Now()
+
+	_, err := r.db.Collection(domain.UserCollectionName).
+		UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updateFields})
+
+	return err
+}
+
+func (r *userRepository) UpdateSettings(ctx context.Context, id bson.ObjectID, input domain.UserSettingsUpdateInput) error {
+	updateFields := bson.M{}
+
 	if input.CountryID != nil {
 		updateFields["settings.country_id"] = input.CountryID
 	}

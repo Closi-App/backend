@@ -14,7 +14,7 @@ func (h *Handler) initAnswerRoutes(router fiber.Router) {
 		answers.Get("/", h.answerGetAllWithFilter)
 		answers.Get("/:id", h.answerGetByID)
 
-		auth := answers.Group("", h.authUserMiddleware)
+		auth := answers.Group("", h.userAuthMiddleware)
 		{
 			auth.Post("/", h.answerCreate)
 			auth.Put("/:id", h.answerUpdate)
@@ -38,7 +38,7 @@ type answerCreateRequest struct {
 // @Accept			json
 // @Produce		json
 // @Param			answerCreateRequest	body		answerCreateRequest	true	"Request"
-// @Success		201					{object}	idResponse
+// @Success		201					{object}	successResponse
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/answers [post]
 func (h *Handler) answerCreate(ctx *fiber.Ctx) error {
@@ -76,7 +76,7 @@ func (h *Handler) answerCreate(ctx *fiber.Ctx) error {
 // @Produce		json
 // @Param			questionID	query		string	false	"Question ID"
 // @Param			userID		query		string	false	"User ID"
-// @Success		200			{array}		domain.Question
+// @Success		200			{object}	successResponse
 // @Failure		400,500		{object}	errorResponse
 // @Router			/answers [get]
 func (h *Handler) answerGetAllWithFilter(ctx *fiber.Ctx) error {
@@ -116,7 +116,7 @@ func (h *Handler) answerGetAllWithFilter(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Answer ID"
-// @Success		200			{object}	domain.Answer
+// @Success		200			{object}	successResponse
 // @Failure		400,404,500	{object}	errorResponse
 // @Router			/answers/{id} [get]
 func (h *Handler) answerGetByID(ctx *fiber.Ctx) error {
@@ -150,14 +150,14 @@ type answerUpdateRequest struct {
 // @Produce		json
 // @Param			id					path		string				true	"Answer ID"
 // @Param			answerUpdateRequest	body		answerUpdateRequest	true	"Request"
-// @Success		200					{string}	string				"OK"
+// @Success		200					{object}	response
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/answers/{id} [put]
 func (h *Handler) answerUpdate(ctx *fiber.Ctx) error {
 	var err error
 
 	var req answerUpdateRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err = ctx.BodyParser(&req); err != nil {
 		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
 	}
 
@@ -178,7 +178,7 @@ func (h *Handler) answerUpdate(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Delete
@@ -188,7 +188,7 @@ func (h *Handler) answerUpdate(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Answer ID"
-// @Success		200			{string}	string	"OK"
+// @Success		200			{object}	response
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/answers/{id} [delete]
 func (h *Handler) answerDelete(ctx *fiber.Ctx) error {
@@ -207,7 +207,7 @@ func (h *Handler) answerDelete(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Add like
@@ -217,7 +217,7 @@ func (h *Handler) answerDelete(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Answer ID"
-// @Success		200			{string}	string	"OK"
+// @Success		200			{object}	response
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/answers/{id}/likes [put]
 func (h *Handler) answerAddLike(ctx *fiber.Ctx) error {
@@ -231,7 +231,7 @@ func (h *Handler) answerAddLike(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Remove like
@@ -241,7 +241,7 @@ func (h *Handler) answerAddLike(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Answer ID"
-// @Success		200			{string}	string	"OK"
+// @Success		200			{object}	response
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/answers/{id}/likes [delete]
 func (h *Handler) answerRemoveLike(ctx *fiber.Ctx) error {
@@ -255,5 +255,5 @@ func (h *Handler) answerRemoveLike(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }

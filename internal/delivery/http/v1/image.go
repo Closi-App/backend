@@ -7,11 +7,13 @@ import (
 )
 
 func (h *Handler) initImageRoutes(router fiber.Router) {
-	images := router.Group("/images", h.authUserMiddleware)
+	images := router.Group("/images", h.userAuthMiddleware)
 	{
 		images.Post("/", h.imageUpload)
 	}
 }
+
+// TODO: rename this handler "files"
 
 // @Summary		Upload
 // @Description	Upload image
@@ -20,7 +22,7 @@ func (h *Handler) initImageRoutes(router fiber.Router) {
 // @Accept			multipart/form-data
 // @Produce		json
 // @Param			image		formData	file	true	"Image"
-// @Success		201			{string}	string	"Created"
+// @Success		201			{object}	successResponse
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/images [post]
 func (h *Handler) imageUpload(ctx *fiber.Ctx) error {

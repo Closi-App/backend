@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
 	"github.com/spf13/viper"
 )
@@ -30,6 +31,7 @@ func NewServer(cfg *viper.Viper, log *logger.Logger, handler *v1.Handler) *Serve
 	})
 
 	engine.Use(
+		requestid.New(),
 		fiberzerolog.New(fiberzerolog.Config{
 			Logger: &log.Logger,
 		}),

@@ -1,3 +1,33 @@
-<h1>Email confirmation</h1>
-<p>To confirm your account, please <a href="{{.ConfirmationLink}}">click here</a>.</p>
-<p>If you updated your email, this step is needed to verify your new address.</p>
+{{ define "content" }}
+
+<h2>Email confirmation</h2>
+
+<p>We need to confirm your email address to complete the process. Please click the button below to confirm your email:</p>
+
+<p>
+    <a style="
+        display: block;
+        margin: 0 auto;
+        padding: 10px 20px;
+        text-align: center;
+        background-color: #685df5;
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3)
+    " href="{{.ConfirmationLink}}">Confirm email</a>
+</p>
+
+<p>If you recently updated your email address, this step is required to confirm your new address.</p>
+<p>If you did not request this, please ignore this email.</p>
+
+<p>
+    Best regards,
+    <br>
+    <span style="
+        font-weight: 600
+    ">The Closi Team</span>
+</p>
+
+{{ end }}

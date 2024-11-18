@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/Closi-App/backend/internal/domain"
 	"github.com/Closi-App/backend/internal/service"
+	"github.com/Closi-App/backend/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -17,10 +18,11 @@ func (h *Handler) initUserRoutes(router fiber.Router) {
 		users.Get("/:id", h.userGetByID)
 		users.Post("/:id/confirm", h.userConfirm)
 
-		auth := users.Group("", h.authUserMiddleware)
+		auth := users.Group("", h.userAuthMiddleware)
 		{
 			auth.Get("/", h.userGet)
 			auth.Put("/", h.userUpdate)
+			auth.Put("/settings", h.userUpdateSettings)
 			auth.Delete("/", h.userDelete)
 
 			favorites := auth.Group("/favorites")
@@ -57,7 +59,7 @@ type userSignUpResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			userSignUpRequest	body		userSignUpRequest	true	"Request"
-// @Success		200					{object}	userSignUpResponse
+// @Success		200					{object}	successResponse
 // @Failure		400,409,500			{object}	errorResponse
 // @Router			/users/sign-up [post]
 func (h *Handler) userSignUp(ctx *fiber.Ctx) error {
@@ -71,7 +73,11 @@ func (h *Handler) userSignUp(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
 	}
 
-	language := domain.ParseLanguage(req.Language)
+	l, err := utils.ParseLanguage(req.Language)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+	lang := l.String()
 
 	tokens, err := h.userService.SignUp(ctx.Context(), service.UserSignUpInput{
 		Name:         req.Name,
@@ -79,7 +85,7 @@ func (h *Handler) userSignUp(ctx *fiber.Ctx) error {
 		Email:        req.Email,
 		Password:     req.Password,
 		CountryID:    countryObjectID,
-		Language:     language,
+		Language:     lang,
 		ReferrerCode: req.ReferrerCode,
 	})
 	if err != nil {
@@ -111,7 +117,7 @@ type userSignInResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			userSignInRequest	body		userSignInRequest	true	"Request"
-// @Success		200					{object}	userSignInResponse
+// @Success		200					{object}	successResponse
 // @Failure		400,500				{object}	errorResponse
 // @Router			/users/sign-in [post]
 func (h *Handler) userSignIn(ctx *fiber.Ctx) error {
@@ -143,7 +149,7 @@ func (h *Handler) userSignIn(ctx *fiber.Ctx) error {
 // @Tags			users
 // @Accept			json
 // @Produce		json
-// @Success		200			{object}	domain.User
+// @Success		200			{object}	successResponse
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/users [get]
 func (h *Handler) userGet(ctx *fiber.Ctx) error {
@@ -170,7 +176,7 @@ func (h *Handler) userGet(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"User ID"
-// @Success		200			{object}	domain.User
+// @Success		200			{object}	successResponse
 // @Failure		400,404,500	{object}	errorResponse
 // @Router			/users/{id} [get]
 func (h *Handler) userGetByID(ctx *fiber.Ctx) error {
@@ -193,15 +199,11 @@ func (h *Handler) userGetByID(ctx *fiber.Ctx) error {
 }
 
 type userUpdateRequest struct {
-	Name               *string
-	Username           *string
-	Email              *string
-	Password           *string
-	AvatarURL          *string
-	CountryID          *string
-	Language           *string
-	Appearance         *string
-	EmailNotifications *bool
+	Name      *string
+	Username  *string
+	Email     *string
+	Password  *string
+	AvatarURL *string
 }
 
 // @Summary		Update
@@ -211,7 +213,7 @@ type userUpdateRequest struct {
 // @Accept			json
 // @Produce		json
 // @Param			userUpdateRequest	body		userUpdateRequest	true	"Request"
-// @Success		200					{string}	string				"OK"
+// @Success		200					{object}	response
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/users [put]
 func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
@@ -227,9 +229,47 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
+	if err = h.userService.Update(ctx.Context(), ctxUser.ID, domain.UserUpdateInput{
+		Name:      req.Name,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  req.Password,
+		AvatarURL: req.AvatarURL,
+	}); err != nil {
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	return h.newResponse(ctx, fiber.StatusOK)
+}
+
+type userUpdateSettingsRequest struct {
+	CountryID          *string
+	Language           *string
+	Appearance         *string
+	EmailNotifications *bool
+}
+
+// @Summary		Update settings
+// @Description	Update auth user settings
+// @Security		UserAuth
+// @Tags			users
+// @Accept			json
+// @Produce		json
+// @Param			userUpdateSettingsRequest	body		userUpdateSettingsRequest	true	"Request"
+// @Success		200							{object}	response
+// @Failure		400,401,500					{object}	errorResponse
+// @Router			/users/settings [put]
+func (h *Handler) userUpdateSettings(ctx *fiber.Ctx) error {
+	var err error
+
+	var req userUpdateSettingsRequest
+	if err = ctx.BodyParser(&req); err != nil {
+		return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+	}
+
 	var (
 		countryObjectID bson.ObjectID
-		language        domain.Language
+		lang            string
 		appearance      domain.Appearance
 	)
 
@@ -240,27 +280,31 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 		}
 	}
 	if req.Language != nil {
-		language = domain.ParseLanguage(*req.Language)
+		l, err := utils.ParseLanguage(*req.Language)
+		if err != nil {
+			return h.newResponse(ctx, fiber.StatusBadRequest, domain.ErrBadRequest)
+		}
+		lang = l.String()
 	}
 	if req.Appearance != nil {
 		appearance = domain.ParseAppearance(*req.Appearance)
 	}
 
-	if err = h.userService.Update(ctx.Context(), ctxUser.ID, domain.UserUpdateInput{
-		Name:               req.Name,
-		Username:           req.Username,
-		Email:              req.Email,
-		Password:           req.Password,
-		AvatarURL:          req.AvatarURL,
+	ctxUser, err := h.getUserFromCtx(ctx)
+	if err != nil {
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
+	}
+
+	if err = h.userService.UpdateSettings(ctx.Context(), ctxUser.ID, domain.UserSettingsUpdateInput{
 		CountryID:          &countryObjectID,
-		Language:           &language,
+		Language:           &lang,
 		Appearance:         &appearance,
 		EmailNotifications: req.EmailNotifications,
 	}); err != nil {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Delete
@@ -269,7 +313,7 @@ func (h *Handler) userUpdate(ctx *fiber.Ctx) error {
 // @Tags			users
 // @Accept			json
 // @Produce		json
-// @Success		200		{string}	string	"OK"
+// @Success		200		{object}	response
 // @Failure		401,500	{object}	errorResponse
 // @Router			/users [delete]
 func (h *Handler) userDelete(ctx *fiber.Ctx) error {
@@ -282,7 +326,7 @@ func (h *Handler) userDelete(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 type userRefreshRequest struct {
@@ -300,7 +344,7 @@ type userRefreshResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			userRefreshRequest	body		userRefreshRequest	true	"Request"
-// @Success		200					{object}	userRefreshResponse
+// @Success		200					{object}	successResponse
 // @Failure		400,401,500			{object}	errorResponse
 // @Router			/users/refresh [post]
 func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
@@ -330,7 +374,7 @@ func (h *Handler) userRefresh(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id		path		string	true	"User ID"
-// @Success		200		{string}	string	"OK"
+// @Success		200		{object}	response
 // @Failure		400,500	{object}	errorResponse
 // @Router			/users/{id}/confirm [get]
 func (h *Handler) userConfirm(ctx *fiber.Ctx) error {
@@ -344,7 +388,7 @@ func (h *Handler) userConfirm(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Add favorite
@@ -354,7 +398,7 @@ func (h *Handler) userConfirm(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			questionID	path		string	true	"Question ID"
-// @Success		200			{string}	string	"OK"
+// @Success		200			{object}	response
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/users/favorites/{questionID} [post]
 func (h *Handler) userAddFavorite(ctx *fiber.Ctx) error {
@@ -373,7 +417,7 @@ func (h *Handler) userAddFavorite(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Remove favorite
@@ -383,7 +427,7 @@ func (h *Handler) userAddFavorite(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			questionID	path		string	true	"Question ID"
-// @Success		200			{string}	string	"OK"
+// @Success		200			{object}	response
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/users/favorites/{questionID} [delete]
 func (h *Handler) userRemoveFavorite(ctx *fiber.Ctx) error {
@@ -402,5 +446,5 @@ func (h *Handler) userRemoveFavorite(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }

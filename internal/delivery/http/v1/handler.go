@@ -3,12 +3,14 @@ package v1
 import (
 	"github.com/Closi-App/backend/internal/service"
 	"github.com/Closi-App/backend/pkg/auth"
+	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Handler struct {
 	log             *logger.Logger
+	localizer       *localizer.Localizer
 	countryService  service.CountryService
 	imageService    service.ImageService
 	tagService      service.TagService
@@ -20,6 +22,7 @@ type Handler struct {
 
 func NewHandler(
 	log *logger.Logger,
+	localizer *localizer.Localizer,
 	countryService service.CountryService,
 	imageService service.ImageService,
 	tagService service.TagService,
@@ -30,6 +33,7 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		log:             log,
+		localizer:       localizer,
 		countryService:  countryService,
 		imageService:    imageService,
 		tagService:      tagService,
@@ -41,7 +45,7 @@ func NewHandler(
 }
 
 func (h *Handler) InitRoutes(router fiber.Router) {
-	v1 := router.Group("/v1")
+	v1 := router.Group("/v1", h.localizerMiddleware)
 	{
 		h.initCountryRoutes(v1)
 		h.initImageRoutes(v1)

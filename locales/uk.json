@@ -1,0 +1,31 @@
+{
+  "errors": {
+    "ERR_INTERNAL_SERVER_ERROR": "Внутрішня помилка сервера",
+    "ERR_BAD_REQUEST": "Некоректний запит",
+    "ERR_UNAUTHORIZED": "Несанкціонований доступ",
+
+    "ERR_USER_ALREADY_EXISTS": "Користувач вже існує",
+    "ERR_USER_NOT_FOUND": "Користувача не знайдено",
+    "ERR_USER_INSUFFICIENT_POINTS": "Недостатньо балів",
+
+    "ERR_TAG_NOT_FOUND": "Тег не знайдено",
+
+    "ERR_QUESTION_NOT_FOUND": "Питання не знайдено",
+
+    "ERR_ANSWER_NOT_FOUND": "Відповідь не знайдено",
+
+    "ERR_COUNTRY_NOT_FOUND": "Країну не знайдено"
+  },
+
+  "emails": {
+    "welcome": {
+      "subject": "Ласкаво просимо до Closi!",
+      "template_path": "./templates/emails/uk/welcome.html"
+    },
+
+    "confirmation": {
+      "subject": "Підтвердження електронної пошти",
+      "template_path": "./templates/emails/uk/confirmation.html"
+    }
+  }
+}

@@ -1,3 +1,33 @@
-<h1>Potwierdzenie adresu e-mail</h1>
-<p>Aby potwierdzić swoje konto, proszę <a href="{{.ConfirmationLink}}">kliknij tutaj</a>.</p>
-<p>Jeśli zaktualizowałeś/aś swój adres e-mail, ten krok jest wymagany do weryfikacji nowego adresu.</p>
+{{ define "content" }}
+
+<h2>Potwierdzenie adresu e-mail</h2>
+
+<p>Musimy potwierdzić Twój adres e-mail, aby zakończyć proces. Kliknij przycisk poniżej, aby potwierdzić swój adres e-mail:</p>
+
+<p>
+    <a style="
+        display: block;
+        margin: 0 auto;
+        padding: 10px 20px;
+        text-align: center;
+        background-color: #685df5;
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3)
+    " href="{{.ConfirmationLink}}">Potwierdź e-mail</a>
+</p>
+
+<p>Jeśli niedawno zaktualizowałeś swój adres e-mail, ten krok jest wymagany, aby potwierdzić nowy adres.</p>
+<p>Jeśli nie złożyłeś tego żądania, zignoruj tę wiadomość e-mail.</p>
+
+<p>
+    Z pozdrowieniami,
+    <br>
+    <span style="
+        font-weight: 600
+    ">Zespół Closi</span>
+</p>
+
+{{ end }}

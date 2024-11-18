@@ -3,39 +3,82 @@ package v1
 import (
 	"errors"
 	"github.com/Closi-App/backend/internal/domain"
+	"github.com/Closi-App/backend/internal/utils"
+	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"golang.org/x/text/language"
 	"strings"
 )
 
 const (
-	authorizationHeader = "Authorization"
-	userCtxKey          = "user"
+	acceptLanguageHeader = "Accept-Language"
+	authorizationHeader  = "Authorization"
+
+	localizerCtxKey = "localizer"
+	userCtxKey      = "user"
 )
 
-func (h *Handler) parseUserIDFromAuthHeader(ctx *fiber.Ctx) (string, error) {
+func (h *Handler) getRequestIDFromCtx(ctx *fiber.Ctx) string {
+	return ctx.Locals("requestid").(string)
+}
+
+func (h *Handler) localizerMiddleware(ctx *fiber.Ctx) error {
+	langTag := language.English
+
+	header := ctx.Get(acceptLanguageHeader)
+	if header != "" {
+		langTags, _, err := language.ParseAcceptLanguage(header)
+		if err != nil {
+			return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+		}
+
+		// TODO: check if app has this language
+
+		langTag = langTags[0]
+	}
+
+	l := h.localizer.SetLanguage(langTag)
+	ctx.Locals(localizerCtxKey, l)
+
+	return ctx.Next()
+}
+
+func (h *Handler) getLocalizerFromCtx(ctx *fiber.Ctx) *localizer.Localizer {
+	l, ok := ctx.Locals(localizerCtxKey).(*localizer.Localizer)
+	if !ok {
+		l = h.localizer
+	}
+
+	return l
+}
+
+func (h *Handler) setLocalizerToCtx(ctx *fiber.Ctx, lang string) error {
+	langTag, err := utils.ParseLanguage(lang)
+	if err != nil {
+		return errors.New("error parsing language tag")
+	}
+
+	l := h.localizer.SetLanguage(langTag)
+	ctx.Locals(localizerCtxKey, l)
+
+	return nil
+}
+
+func (h *Handler) userAuthMiddleware(ctx *fiber.Ctx) error {
 	header := ctx.Get(authorizationHeader)
 	if header == "" {
-		return "", errors.New("empty authorization header")
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		return "", errors.New("invalid authorization header")
+		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
 
 	accessToken := headerParts[1]
 
-	userID, err := h.tokensManager.Parse(accessToken)
-	if err != nil {
-		return "", errors.New("invalid access token")
-	}
-
-	return userID, nil
-}
-
-func (h *Handler) authUserMiddleware(ctx *fiber.Ctx) error {
-	id, err := h.parseUserIDFromAuthHeader(ctx)
+	id, err := h.tokensManager.Parse(accessToken)
 	if err != nil {
 		return h.newResponse(ctx, fiber.StatusUnauthorized, domain.ErrUnauthorized)
 	}
@@ -51,6 +94,10 @@ func (h *Handler) authUserMiddleware(ctx *fiber.Ctx) error {
 	}
 
 	ctx.Locals(userCtxKey, user)
+
+	if err = h.setLocalizerToCtx(ctx, user.Settings.Language); err != nil {
+		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
+	}
 
 	return ctx.Next()
 }

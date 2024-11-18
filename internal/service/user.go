@@ -17,6 +17,7 @@ type UserService interface {
 	SignIn(ctx context.Context, input UserSignInInput) (Tokens, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (domain.User, error)
 	Update(ctx context.Context, id bson.ObjectID, input domain.UserUpdateInput) error
+	UpdateSettings(ctx context.Context, id bson.ObjectID, input domain.UserSettingsUpdateInput) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 
 	AdjustPoints(ctx context.Context, id bson.ObjectID, pointsAmount int) error
@@ -67,7 +68,7 @@ type UserSignUpInput struct {
 	Email        string
 	Password     string
 	CountryID    bson.ObjectID
-	Language     domain.Language
+	Language     string
 	ReferrerCode string
 }
 
@@ -114,10 +115,10 @@ func (s *userService) SignUp(ctx context.Context, input UserSignUpInput) (Tokens
 		referrer, err := s.repository.GetByReferralCode(ctx, input.ReferrerCode)
 		if err == nil {
 			if err := s.repository.AdjustPoints(ctx, referrer.ID, domain.UserReferralPoints); err != nil {
-				return Tokens{}, err
+				s.log.Error().Err(err).Msgf("error adjusting points for referrer (%s)", referrer.ID)
 			}
 			if err := s.repository.AdjustPoints(ctx, id, domain.UserReferralPoints); err != nil {
-				return Tokens{}, err
+				s.log.Error().Err(err).Msgf("error adjusting points for referral (%s)", id)
 			}
 		}
 	}
@@ -189,6 +190,10 @@ func (s *userService) Update(ctx context.Context, id bson.ObjectID, input domain
 	}
 
 	return nil
+}
+
+func (s *userService) UpdateSettings(ctx context.Context, id bson.ObjectID, input domain.UserSettingsUpdateInput) error {
+	return s.repository.UpdateSettings(ctx, id, input)
 }
 
 func (s *userService) Delete(ctx context.Context, id bson.ObjectID) error {

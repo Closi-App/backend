@@ -5,10 +5,15 @@ type Sender interface {
 }
 
 type SendInput struct {
-	To          string
-	Subject     string
-	Body        string
-	ContentType ContentType
+	To            []string
+	Subject       string
+	Body          string
+	EmbeddedFiles []EmbeddedFile
+	ContentType   ContentType
+}
+
+type EmbeddedFile struct {
+	Path string
 }
 
 type ContentType string

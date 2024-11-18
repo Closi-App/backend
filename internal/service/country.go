@@ -27,15 +27,15 @@ func NewCountryService(service *Service, repository repository.CountryRepository
 }
 
 type CountryCreateInput struct {
-	Name map[domain.Language]string
+	Name map[string]string
 }
 
 func (s *countryService) Create(ctx context.Context, input CountryCreateInput) (bson.ObjectID, error) {
 	id := bson.NewObjectID()
 
 	if err := s.repository.Create(ctx, domain.Country{
-		ID:   id,
-		Name: input.Name,
+		ID:    id,
+		Names: input.Name,
 	}); err != nil {
 		return bson.ObjectID{}, err
 	}

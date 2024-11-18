@@ -13,7 +13,7 @@ func (h *Handler) initTagRoutes(router fiber.Router) {
 		tags.Get("/:id", h.tagGetByID)
 		tags.Get("/", h.tagGetAll)
 
-		auth := tags.Group("", h.authUserMiddleware)
+		auth := tags.Group("", h.userAuthMiddleware)
 		{
 			auth.Get("/country/:countryID", h.tagGetAllByCountryID)
 		}
@@ -28,7 +28,7 @@ func (h *Handler) initTagRoutes(router fiber.Router) {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Tag ID"
-// @Success		200			{object}	domain.Tag
+// @Success		200			{object}	successResponse
 // @Failure		400,404,500	{object}	errorResponse
 // @Router			/tags/{id} [get]
 func (h *Handler) tagGetByID(ctx *fiber.Ctx) error {
@@ -55,7 +55,7 @@ func (h *Handler) tagGetByID(ctx *fiber.Ctx) error {
 // @Tags			tags
 // @Accept			json
 // @Produce		json
-// @Success		200	{array}		domain.Tag
+// @Success		200 {object}	successResponse
 // @Failure		500	{object}	errorResponse
 // @Router			/tags [get]
 func (h *Handler) tagGetAll(ctx *fiber.Ctx) error {
@@ -74,7 +74,7 @@ func (h *Handler) tagGetAll(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			countryID	path		string	true	"Country ID"
-// @Success		200			{array}		domain.Tag
+// @Success		200			{object}	successResponse
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/tags/country/{countryID} [get]
 func (h *Handler) tagGetAllByCountryID(ctx *fiber.Ctx) error {

@@ -44,19 +44,22 @@ type User struct {
 
 type UserSettings struct {
 	CountryID          bson.ObjectID `bson:"country_id" json:"country_id"`
-	Language           Language      `bson:"language" json:"language"`
+	Language           string        `bson:"language" json:"language"`
 	Appearance         Appearance    `bson:"appearance" json:"appearance"`
 	EmailNotifications bool          `bson:"email_notifications" json:"email_notifications"`
 }
 
 type UserUpdateInput struct {
-	Name               *string
-	Username           *string
-	Email              *string
-	Password           *string
-	AvatarURL          *string
+	Name      *string
+	Username  *string
+	Email     *string
+	Password  *string
+	AvatarURL *string
+}
+
+type UserSettingsUpdateInput struct {
 	CountryID          *bson.ObjectID
-	Language           *Language
+	Language           *string
 	Appearance         *Appearance
 	EmailNotifications *bool
 }

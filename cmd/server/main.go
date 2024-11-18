@@ -5,7 +5,9 @@ import (
 	"flag"
 	"github.com/Closi-App/backend/cmd/server/wire"
 	"github.com/Closi-App/backend/pkg/config"
+	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/Closi-App/backend/pkg/logger"
+	"golang.org/x/text/language"
 )
 
 //	@title			Closi API
@@ -22,9 +24,18 @@ func main() {
 	flag.Parse()
 	cfg := config.NewConfig(*cfgFilePath)
 
+	// TODO: think about place of localizer initializer
+	l := localizer.NewLocalizer([]string{
+		"./locales/en.json",
+		"./locales/uk.json",
+		"./locales/de.json",
+		"./locales/pl.json",
+		"./locales/ru.json",
+	}, language.English)
+
 	log := logger.NewLogger(cfg)
 
-	app, cleanup, err := wire.NewWire(cfg, log)
+	app, cleanup, err := wire.NewWire(cfg, l, log)
 	defer cleanup()
 	if err != nil {
 		panic(err)

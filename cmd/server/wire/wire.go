@@ -13,6 +13,7 @@ import (
 	"github.com/Closi-App/backend/pkg/database/mongo"
 	"github.com/Closi-App/backend/pkg/database/redis"
 	"github.com/Closi-App/backend/pkg/imgbb"
+	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/Closi-App/backend/pkg/smtp"
 	"github.com/google/wire"
@@ -58,7 +59,7 @@ func newApp(cfg *viper.Viper, log *logger.Logger, httpServer *http.Server) *app.
 	return app.NewApp(cfg, log, httpServer)
 }
 
-func NewWire(*viper.Viper, *logger.Logger) (*app.App, func(), error) {
+func NewWire(*viper.Viper, *localizer.Localizer, *logger.Logger) (*app.App, func(), error) {
 	panic(wire.Build(
 		pkgSet,
 		repositorySet,

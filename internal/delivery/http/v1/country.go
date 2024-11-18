@@ -22,7 +22,7 @@ func (h *Handler) initCountryRoutes(router fiber.Router) {
 // @Tags			countries
 // @Accept			json
 // @Produce		json
-// @Success		200	{array}		domain.Country
+// @Success		200	{object}	successResponse
 // @Failure		500	{object}	errorResponse
 // @Router			/countries [get]
 func (h *Handler) countryGetAll(ctx *fiber.Ctx) error {
@@ -40,7 +40,7 @@ func (h *Handler) countryGetAll(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Country ID"
-// @Success		200			{object}	domain.Country
+// @Success		200			{object}	successResponse
 // @Failure		400,404,500	{object}	errorResponse
 // @Router			/countries/{id} [get]
 func (h *Handler) countryGetByID(ctx *fiber.Ctx) error {

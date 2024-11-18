@@ -14,7 +14,7 @@ func (h *Handler) initQuestionRoutes(router fiber.Router) {
 		questions.Get("/", h.questionGetAllWithFilter)
 		questions.Get("/:id", h.questionGetByID)
 
-		auth := questions.Group("", h.authUserMiddleware)
+		auth := questions.Group("", h.userAuthMiddleware)
 		{
 			auth.Post("/", h.questionCreate)
 			auth.Put("/:id", h.questionUpdate)
@@ -38,7 +38,7 @@ type questionCreateRequest struct {
 // @Accept			json
 // @Produce		json
 // @Param			questionCreateRequest	body		questionCreateRequest	true	"Request"
-// @Success		201						{object}	idResponse
+// @Success		201						{object}	successResponse
 // @Failure		400,401,500				{object}	errorResponse
 // @Router			/questions [post]
 func (h *Handler) questionCreate(ctx *fiber.Ctx) error {
@@ -81,7 +81,7 @@ func (h *Handler) questionCreate(ctx *fiber.Ctx) error {
 // @Param			tag			query		string	false	"Question tag"
 // @Param			countryID	query		string	false	"Country ID"
 // @Param			userID		query		string	false	"User ID"
-// @Success		200			{array}		domain.Question
+// @Success		200			{object}	successResponse
 // @Failure		400,500		{object}	errorResponse
 // @Router			/questions [get]
 func (h *Handler) questionGetAllWithFilter(ctx *fiber.Ctx) error {
@@ -134,7 +134,7 @@ func (h *Handler) questionGetAllWithFilter(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Question ID"
-// @Success		200			{object}	domain.Question
+// @Success		200			{object}	successResponse
 // @Failure		400,404,500	{object}	errorResponse
 // @Router			/questions/{id} [get]
 func (h *Handler) questionGetByID(ctx *fiber.Ctx) error {
@@ -172,7 +172,7 @@ type questionUpdateRequest struct {
 // @Produce		json
 // @Param			id						path		string					true	"Question ID"
 // @Param			questionUpdateRequest	body		questionUpdateRequest	true	"Request"
-// @Success		200						{string}	string					"OK"
+// @Success		200						{object}	response
 // @Failure		400,401,500				{object}	errorResponse
 // @Router			/questions/{id} [put]
 func (h *Handler) questionUpdate(ctx *fiber.Ctx) error {
@@ -220,7 +220,7 @@ func (h *Handler) questionUpdate(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }
 
 // @Summary		Delete
@@ -230,7 +230,7 @@ func (h *Handler) questionUpdate(ctx *fiber.Ctx) error {
 // @Accept			json
 // @Produce		json
 // @Param			id			path		string	true	"Question ID"
-// @Success		200			{string}	string	"OK"
+// @Success		200			{object}	response
 // @Failure		400,401,500	{object}	errorResponse
 // @Router			/questions/{id} [delete]
 func (h *Handler) questionDelete(ctx *fiber.Ctx) error {
@@ -249,5 +249,5 @@ func (h *Handler) questionDelete(ctx *fiber.Ctx) error {
 		return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 	}
 
-	return h.newResponse(ctx, fiber.StatusOK, nil)
+	return h.newResponse(ctx, fiber.StatusOK)
 }

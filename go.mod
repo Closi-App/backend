@@ -10,6 +10,7 @@ require (
 	github.com/gofiber/swagger v1.1.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/wire v0.6.0
+	github.com/nicksnyder/go-i18n/v2 v2.4.1
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/rs/zerolog v1.33.0
@@ -17,6 +18,7 @@ require (
 	github.com/swaggo/swag v1.16.4
 	go.mongodb.org/mongo-driver/v2 v2.0.0-beta2
 	golang.org/x/crypto v0.28.0
+	golang.org/x/text v0.20.0
 	gopkg.in/mail.v2 v2.3.1
 )
 
@@ -66,9 +68,8 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
-	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

@@ -1,159 +1,11 @@
 basePath: /api/v1/
 definitions:
-  domain.Answer:
+  domain.Error:
     properties:
-      created_at:
+      code:
         type: string
-      id:
+      message:
         type: string
-      is_verified:
-        type: boolean
-      likes:
-        type: integer
-      question_id:
-        type: string
-      text:
-        type: string
-      updated_at:
-        type: string
-      user_id:
-        type: string
-    type: object
-  domain.Appearance:
-    enum:
-    - dark
-    - light
-    type: string
-    x-enum-varnames:
-    - DarkAppearance
-    - LightAppearance
-  domain.Country:
-    properties:
-      id:
-        type: string
-      name:
-        additionalProperties:
-          type: string
-        type: object
-    type: object
-  domain.Language:
-    enum:
-    - en
-    - uk
-    - de
-    - pl
-    - ru
-    type: string
-    x-enum-varnames:
-    - EnglishLanguage
-    - UkrainianLanguage
-    - DeutschLanguage
-    - PolishLanguage
-    - RussianLanguage
-  domain.Question:
-    properties:
-      attachments_url:
-        items:
-          type: string
-        type: array
-      country_id:
-        type: string
-      created_at:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      points:
-        type: integer
-      tags:
-        items:
-          type: string
-        type: array
-      title:
-        type: string
-      updated_at:
-        type: string
-      user_id:
-        type: string
-    type: object
-  domain.Subscription:
-    properties:
-      expires_at:
-        type: string
-      type:
-        $ref: '#/definitions/domain.SubscriptionType'
-    type: object
-  domain.SubscriptionType:
-    enum:
-    - free
-    - monthly
-    - quarterly
-    - annual
-    type: string
-    x-enum-varnames:
-    - FreeSubscription
-    - MonthlySubscription
-    - QuarterlySubscription
-    - AnnualSubscription
-  domain.Tag:
-    properties:
-      country_id:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  domain.User:
-    properties:
-      achievements:
-        items:
-          type: string
-        type: array
-      avatar_url:
-        type: string
-      created_at:
-        type: string
-      email:
-        type: string
-      favorites:
-        items:
-          type: string
-        type: array
-      id:
-        type: string
-      is_blocked:
-        type: boolean
-      is_confirmed:
-        type: boolean
-      name:
-        type: string
-      password:
-        type: string
-      points:
-        type: integer
-      referral_code:
-        type: string
-      settings:
-        $ref: '#/definitions/domain.UserSettings'
-      subscription:
-        $ref: '#/definitions/domain.Subscription'
-      updated_at:
-        type: string
-      username:
-        type: string
-    type: object
-  domain.UserSettings:
-    properties:
-      appearance:
-        $ref: '#/definitions/domain.Appearance'
-      country_id:
-        type: string
-      email_notifications:
-        type: boolean
-      language:
-        $ref: '#/definitions/domain.Language'
     type: object
   v1.answerCreateRequest:
     properties:
@@ -169,15 +21,14 @@ definitions:
     type: object
   v1.errorResponse:
     properties:
-      code:
+      error:
+        $ref: '#/definitions/domain.Error'
+      request_id:
         type: string
-      message:
-        type: string
-    type: object
-  v1.idResponse:
-    properties:
-      id:
-        type: string
+      status:
+        $ref: '#/definitions/v1.responseStatus'
+      status_code:
+        type: integer
     type: object
   v1.questionCreateRequest:
     properties:
@@ -213,16 +64,36 @@ definitions:
       title:
         type: string
     type: object
+  v1.response:
+    properties:
+      request_id:
+        type: string
+      status:
+        $ref: '#/definitions/v1.responseStatus'
+      status_code:
+        type: integer
+    type: object
+  v1.responseStatus:
+    enum:
+    - success
+    - error
+    type: string
+    x-enum-varnames:
+    - successStatus
+    - errorStatus
+  v1.successResponse:
+    properties:
+      data: {}
+      request_id:
+        type: string
+      status:
+        $ref: '#/definitions/v1.responseStatus'
+      status_code:
+        type: integer
+    type: object
   v1.userRefreshRequest:
     properties:
       token:
-        type: string
-    type: object
-  v1.userRefreshResponse:
-    properties:
-      access_token:
-        type: string
-      refresh_token:
         type: string
     type: object
   v1.userSignInRequest:
@@ -230,13 +101,6 @@ definitions:
       password:
         type: string
       username_or_email:
-        type: string
-    type: object
-  v1.userSignInResponse:
-    properties:
-      access_token:
-        type: string
-      refresh_token:
         type: string
     type: object
   v1.userSignUpRequest:
@@ -256,32 +120,28 @@ definitions:
       username:
         type: string
     type: object
-  v1.userSignUpResponse:
-    properties:
-      access_token:
-        type: string
-      refresh_token:
-        type: string
-    type: object
   v1.userUpdateRequest:
     properties:
-      appearance:
-        type: string
       avatarURL:
         type: string
-      countryID:
-        type: string
       email:
-        type: string
-      emailNotifications:
-        type: boolean
-      language:
         type: string
       name:
         type: string
       password:
         type: string
       username:
+        type: string
+    type: object
+  v1.userUpdateSettingsRequest:
+    properties:
+      appearance:
+        type: string
+      countryID:
+        type: string
+      emailNotifications:
+        type: boolean
+      language:
         type: string
     type: object
 host: 127.0.0.1:8080
@@ -311,9 +171,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Question'
-            type: array
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -342,7 +200,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/v1.idResponse'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -377,7 +235,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -411,7 +269,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Answer'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -449,7 +307,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -484,7 +342,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -518,7 +376,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -547,9 +405,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Country'
-            type: array
+            $ref: '#/definitions/v1.successResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -574,7 +430,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Country'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -607,7 +463,7 @@ paths:
         "201":
           description: Created
           schema:
-            type: string
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -653,9 +509,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Question'
-            type: array
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -684,7 +538,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/v1.idResponse'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -719,7 +573,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -753,7 +607,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Question'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -791,7 +645,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -820,9 +674,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Tag'
-            type: array
+            $ref: '#/definitions/v1.successResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -847,7 +699,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Tag'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -880,9 +732,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Tag'
-            type: array
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -909,7 +759,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "401":
           description: Unauthorized
           schema:
@@ -933,7 +783,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -968,7 +818,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -1003,7 +853,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -1036,7 +886,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -1065,7 +915,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -1099,7 +949,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/v1.response'
         "400":
           description: Bad Request
           schema:
@@ -1135,7 +985,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.userRefreshResponse'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -1149,6 +999,42 @@ paths:
           schema:
             $ref: '#/definitions/v1.errorResponse'
       summary: Refresh tokens
+      tags:
+      - users
+  /users/settings:
+    put:
+      consumes:
+      - application/json
+      description: Update auth user settings
+      parameters:
+      - description: Request
+        in: body
+        name: userUpdateSettingsRequest
+        required: true
+        schema:
+          $ref: '#/definitions/v1.userUpdateSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.errorResponse'
+      security:
+      - UserAuth: []
+      summary: Update settings
       tags:
       - users
   /users/sign-in:
@@ -1169,7 +1055,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.userSignInResponse'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:
@@ -1199,7 +1085,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.userSignUpResponse'
+            $ref: '#/definitions/v1.successResponse'
         "400":
           description: Bad Request
           schema:

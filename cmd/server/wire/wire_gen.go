@@ -16,6 +16,7 @@ import (
 	"github.com/Closi-App/backend/pkg/database/mongo"
 	"github.com/Closi-App/backend/pkg/database/redis"
 	"github.com/Closi-App/backend/pkg/imgbb"
+	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/Closi-App/backend/pkg/smtp"
 	"github.com/google/wire"
@@ -24,7 +25,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, func(), error) {
+func NewWire(viperViper *viper.Viper, localizerLocalizer *localizer.Localizer, loggerLogger *logger.Logger) (*app.App, func(), error) {
 	serviceService := service.NewService(loggerLogger)
 	database := mongo.NewMongo(viperViper)
 	client := redis.NewRedis(viperViper)
@@ -38,7 +39,7 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	tagService := service.NewTagService(serviceService, tagRepository)
 	userRepository := repository.NewUserRepository(repositoryRepository)
 	sender := smtp.NewSMTPSender(viperViper)
-	emailService := service.NewEmailService(serviceService, sender)
+	emailService := service.NewEmailService(serviceService, localizerLocalizer, sender)
 	passwordHasher := auth.NewPasswordHasher(viperViper)
 	tokensManager := auth.NewTokensManager(viperViper)
 	userService := service.NewUserService(serviceService, viperViper, userRepository, emailService, passwordHasher, tokensManager)
@@ -46,7 +47,7 @@ func NewWire(viperViper *viper.Viper, loggerLogger *logger.Logger) (*app.App, fu
 	questionService := service.NewQuestionService(serviceService, questionRepository, tagService)
 	answerRepository := repository.NewAnswerRepository(repositoryRepository)
 	answerService := service.NewAnswerService(serviceService, answerRepository, questionService, userService)
-	handler := v1.NewHandler(loggerLogger, countryService, imageService, tagService, userService, questionService, answerService, tokensManager)
+	handler := v1.NewHandler(loggerLogger, localizerLocalizer, countryService, imageService, tagService, userService, questionService, answerService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {
