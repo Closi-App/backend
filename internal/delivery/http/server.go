@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
+	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 )
 
@@ -35,7 +36,16 @@ func NewServer(cfg *viper.Viper, log *logger.Logger, handler *v1.Handler) *Serve
 		cors.New(),
 		requestid.New(),
 		fiberzerolog.New(fiberzerolog.Config{
-			Logger: &log.Logger,
+			Logger:          &log.Logger,
+			FieldsSnakeCase: true,
+			GetLogger: func(ctx *fiber.Ctx) zerolog.Logger {
+				requestID := ctx.Locals("requestid").(string)
+				if requestID != "" {
+					return log.With().Str("request_id", requestID).Logger()
+				}
+
+				return log.Logger
+			},
 		}),
 		recover.New(),
 	)
