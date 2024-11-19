@@ -25,7 +25,9 @@ import (
 
 // Injectors from wire.go:
 
-func NewWire(viperViper *viper.Viper, localizerLocalizer *localizer.Localizer, loggerLogger *logger.Logger) (*app.App, func(), error) {
+func NewWire(viperViper *viper.Viper) (*app.App, func(), error) {
+	loggerLogger := logger.NewLogger(viperViper)
+	localizerLocalizer := localizer.NewLocalizer(viperViper)
 	serviceService := service.NewService(loggerLogger)
 	database := mongo.NewMongo(viperViper)
 	client := redis.NewRedis(viperViper)
@@ -56,7 +58,7 @@ func NewWire(viperViper *viper.Viper, localizerLocalizer *localizer.Localizer, l
 
 // wire.go:
 
-var pkgSet = wire.NewSet(mongo.NewMongo, redis.NewRedis, imgbb.NewImgbb, smtp.NewSMTPSender, auth.NewTokensManager, auth.NewPasswordHasher)
+var pkgSet = wire.NewSet(localizer.NewLocalizer, logger.NewLogger, mongo.NewMongo, redis.NewRedis, imgbb.NewImgbb, smtp.NewSMTPSender, auth.NewTokensManager, auth.NewPasswordHasher)
 
 var repositorySet = wire.NewSet(repository.NewRepository, repository.NewCountryRepository, repository.NewImageRepository, repository.NewTagRepository, repository.NewUserRepository, repository.NewQuestionRepository, repository.NewAnswerRepository)
 

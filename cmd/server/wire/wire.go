@@ -21,6 +21,8 @@ import (
 )
 
 var pkgSet = wire.NewSet(
+	localizer.NewLocalizer,
+	logger.NewLogger,
 	mongo.NewMongo,
 	redis.NewRedis,
 	imgbb.NewImgbb,
@@ -59,7 +61,7 @@ func newApp(cfg *viper.Viper, log *logger.Logger, httpServer *http.Server) *app.
 	return app.NewApp(cfg, log, httpServer)
 }
 
-func NewWire(*viper.Viper, *localizer.Localizer, *logger.Logger) (*app.App, func(), error) {
+func NewWire(*viper.Viper) (*app.App, func(), error) {
 	panic(wire.Build(
 		pkgSet,
 		repositorySet,
