@@ -5,9 +5,16 @@
 app:
   name: "Closi"
 
+localizer:
+  files:
+    - ""
+    - ""
+
+  default_language: ""
+
 log:
   level: "debug"
-  format: "console"
+  format: "console" # json
 
 http:
   host: "127.0.0.1"
@@ -20,7 +27,15 @@ mongo:
   uri: ""
   database: ""
 
+redis:
+  host: ""
+  port: 0
+  password: ""
+  database: 0
+
 auth:
+  confirmation_link_format: ""
+
   password:
     salt: ""
 
@@ -30,5 +45,16 @@ auth:
       ttl: 15m
     refresh_token:
       length: 32
-      ttl: 720h
+      ttl: 5s # 720h
+
+imgbb:
+  api_key: ""
+  timeout: 60s
+
+smtp:
+  host: "smtp.gmail.com"
+  port: 465
+  username: ""
+  password: ""
+
 ```
