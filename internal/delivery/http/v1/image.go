@@ -13,7 +13,7 @@ func (h *Handler) initImageRoutes(router fiber.Router) {
 	}
 }
 
-// TODO: rename this handler "files"
+// TODO: rename this handler "files" and implement logic for loading any files
 
 // @Summary		Upload
 // @Description	Upload image
