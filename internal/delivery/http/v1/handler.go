@@ -6,25 +6,23 @@ import (
 	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/gofiber/fiber/v2"
-	"github.com/spf13/viper"
 	"golang.org/x/text/language"
 )
 
 type Handler struct {
-	log             *logger.Logger
-	localizer       *localizer.Localizer
-	countryService  service.CountryService
-	imageService    service.ImageService
-	tagService      service.TagService
-	userService     service.UserService
-	questionService service.QuestionService
-	answerService   service.AnswerService
-	tokensManager   auth.TokensManager
-	appLanguages    []language.Tag
+	log                   *logger.Logger
+	localizer             *localizer.Localizer
+	countryService        service.CountryService
+	imageService          service.ImageService
+	tagService            service.TagService
+	userService           service.UserService
+	questionService       service.QuestionService
+	answerService         service.AnswerService
+	tokensManager         auth.TokensManager
+	appSupportedLanguages []language.Tag
 }
 
 func NewHandler(
-	cfg *viper.Viper,
 	log *logger.Logger,
 	localizer *localizer.Localizer,
 	countryService service.CountryService,
@@ -34,23 +32,19 @@ func NewHandler(
 	questionService service.QuestionService,
 	answerService service.AnswerService,
 	tokensManager auth.TokensManager,
+	appSupportedLanguages []language.Tag,
 ) *Handler {
-	var appLanguagesTags []language.Tag
-	for _, appLanguage := range cfg.GetStringSlice("app.languages") {
-		appLanguagesTags = append(appLanguagesTags, language.Make(appLanguage))
-	}
-
 	return &Handler{
-		log:             log,
-		localizer:       localizer,
-		countryService:  countryService,
-		imageService:    imageService,
-		tagService:      tagService,
-		userService:     userService,
-		questionService: questionService,
-		answerService:   answerService,
-		tokensManager:   tokensManager,
-		appLanguages:    appLanguagesTags,
+		log:                   log,
+		localizer:             localizer,
+		countryService:        countryService,
+		imageService:          imageService,
+		tagService:            tagService,
+		userService:           userService,
+		questionService:       questionService,
+		answerService:         answerService,
+		tokensManager:         tokensManager,
+		appSupportedLanguages: appSupportedLanguages,
 	}
 }
 

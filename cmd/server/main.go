@@ -5,6 +5,7 @@ import (
 	"flag"
 	"github.com/Closi-App/backend/cmd/server/wire"
 	"github.com/Closi-App/backend/pkg/config"
+	"golang.org/x/text/language"
 )
 
 //	@title			Closi API
@@ -21,7 +22,17 @@ func main() {
 	flag.Parse()
 	cfg := config.NewConfig(*cfgFilePath)
 
-	app, cleanup, err := wire.NewWire(cfg)
+	var supportedLanguages []language.Tag
+	for _, supportedLanguage := range cfg.GetStringSlice("app.supported_languages") {
+		supportedLanguageTag, err := language.Parse(supportedLanguage)
+		if err != nil {
+			panic(err)
+		}
+
+		supportedLanguages = append(supportedLanguages, supportedLanguageTag)
+	}
+
+	app, cleanup, err := wire.NewWire(cfg, supportedLanguages)
 	defer cleanup()
 	if err != nil {
 		panic(err)

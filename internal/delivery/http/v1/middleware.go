@@ -34,7 +34,7 @@ func (h *Handler) localizerMiddleware(ctx *fiber.Ctx) error {
 			return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		matcher := language.NewMatcher(h.appLanguages)
+		matcher := language.NewMatcher(h.appSupportedLanguages)
 		langTag, _, _ = matcher.Match(langTags...)
 	}
 

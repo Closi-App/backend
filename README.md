@@ -4,7 +4,7 @@
 ```yaml
 app:
   name: "Closi"
-  languages:
+  supported_languages:
     - ""
     - ""
 

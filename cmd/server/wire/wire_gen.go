@@ -21,11 +21,12 @@ import (
 	"github.com/Closi-App/backend/pkg/smtp"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
+	"golang.org/x/text/language"
 )
 
 // Injectors from wire.go:
 
-func NewWire(viperViper *viper.Viper) (*app.App, func(), error) {
+func NewWire(viperViper *viper.Viper, arg []language.Tag) (*app.App, func(), error) {
 	loggerLogger := logger.NewLogger(viperViper)
 	localizerLocalizer := localizer.NewLocalizer(viperViper)
 	serviceService := service.NewService(loggerLogger)
@@ -49,7 +50,7 @@ func NewWire(viperViper *viper.Viper) (*app.App, func(), error) {
 	questionService := service.NewQuestionService(serviceService, questionRepository, tagService)
 	answerRepository := repository.NewAnswerRepository(repositoryRepository)
 	answerService := service.NewAnswerService(serviceService, answerRepository, questionService, userService)
-	handler := v1.NewHandler(viperViper, loggerLogger, localizerLocalizer, countryService, imageService, tagService, userService, questionService, answerService, tokensManager)
+	handler := v1.NewHandler(loggerLogger, localizerLocalizer, countryService, imageService, tagService, userService, questionService, answerService, tokensManager, arg)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {

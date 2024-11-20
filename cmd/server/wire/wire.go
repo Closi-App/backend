@@ -18,6 +18,7 @@ import (
 	"github.com/Closi-App/backend/pkg/smtp"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
+	"golang.org/x/text/language"
 )
 
 var pkgSet = wire.NewSet(
@@ -61,7 +62,7 @@ func newApp(cfg *viper.Viper, log *logger.Logger, httpServer *http.Server) *app.
 	return app.NewApp(cfg, log, httpServer)
 }
 
-func NewWire(*viper.Viper) (*app.App, func(), error) {
+func NewWire(*viper.Viper, []language.Tag) (*app.App, func(), error) {
 	panic(wire.Build(
 		pkgSet,
 		repositorySet,
