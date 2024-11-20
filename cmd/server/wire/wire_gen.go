@@ -49,7 +49,7 @@ func NewWire(viperViper *viper.Viper) (*app.App, func(), error) {
 	questionService := service.NewQuestionService(serviceService, questionRepository, tagService)
 	answerRepository := repository.NewAnswerRepository(repositoryRepository)
 	answerService := service.NewAnswerService(serviceService, answerRepository, questionService, userService)
-	handler := v1.NewHandler(loggerLogger, localizerLocalizer, countryService, imageService, tagService, userService, questionService, answerService, tokensManager)
+	handler := v1.NewHandler(viperViper, loggerLogger, localizerLocalizer, countryService, imageService, tagService, userService, questionService, answerService, tokensManager)
 	server := http.NewServer(viperViper, loggerLogger, handler)
 	appApp := newApp(viperViper, loggerLogger, server)
 	return appApp, func() {

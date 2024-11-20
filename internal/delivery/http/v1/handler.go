@@ -6,6 +6,8 @@ import (
 	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/Closi-App/backend/pkg/logger"
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
+	"golang.org/x/text/language"
 )
 
 type Handler struct {
@@ -18,9 +20,11 @@ type Handler struct {
 	questionService service.QuestionService
 	answerService   service.AnswerService
 	tokensManager   auth.TokensManager
+	appLanguages    []language.Tag
 }
 
 func NewHandler(
+	cfg *viper.Viper,
 	log *logger.Logger,
 	localizer *localizer.Localizer,
 	countryService service.CountryService,
@@ -31,6 +35,11 @@ func NewHandler(
 	answerService service.AnswerService,
 	tokensManager auth.TokensManager,
 ) *Handler {
+	var appLanguagesTags []language.Tag
+	for _, appLanguage := range cfg.GetStringSlice("app.languages") {
+		appLanguagesTags = append(appLanguagesTags, language.Make(appLanguage))
+	}
+
 	return &Handler{
 		log:             log,
 		localizer:       localizer,
@@ -41,6 +50,7 @@ func NewHandler(
 		questionService: questionService,
 		answerService:   answerService,
 		tokensManager:   tokensManager,
+		appLanguages:    appLanguagesTags,
 	}
 }
 

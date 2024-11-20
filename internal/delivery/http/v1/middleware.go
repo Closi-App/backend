@@ -7,6 +7,7 @@ import (
 	"github.com/Closi-App/backend/pkg/localizer"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
+
 	"golang.org/x/text/language"
 	"strings"
 )
@@ -33,9 +34,8 @@ func (h *Handler) localizerMiddleware(ctx *fiber.Ctx) error {
 			return h.newResponse(ctx, fiber.StatusInternalServerError, err)
 		}
 
-		// TODO: check if app has this language
-
-		langTag = langTags[0]
+		matcher := language.NewMatcher(h.appLanguages)
+		langTag, _, _ = matcher.Match(langTags...)
 	}
 
 	l := h.localizer.SetLanguage(langTag)

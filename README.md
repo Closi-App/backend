@@ -4,12 +4,14 @@
 ```yaml
 app:
   name: "Closi"
+  languages:
+    - ""
+    - ""
 
 localizer:
   files:
     - ""
     - ""
-
   default_language: ""
 
 log:
